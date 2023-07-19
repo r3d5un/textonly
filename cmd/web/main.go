@@ -3,16 +3,17 @@ package main
 import (
 	"database/sql"
 	"flag"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
 	"net/http"
 	"os"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"textonly.islandwind.me/internal/models"
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
+	errorLog  *log.Logger
+	infoLog   *log.Logger
+	blogPosts *models.BlogPostModel
 }
 
 func main() {
@@ -39,8 +40,9 @@ func main() {
 	defer db.Close()
 
 	app := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
+		errorLog:  errorLog,
+		infoLog:   infoLog,
+		blogPosts: &models.BlogPostModel{DB: db},
 	}
 
 	srv := &http.Server{
