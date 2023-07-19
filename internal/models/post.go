@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -18,7 +19,23 @@ type BlogPostModel struct {
 }
 
 func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
-	return nil, nil
+	stmt := `
+        SELECT id, title, post, last_update, created
+        FROM posts
+        WHERE id = $1;
+    `
+	row := m.DB.QueryRow(stmt, id)
+	blogPost := &BlogPost{}
+
+	err := row.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		} else {
+			return nil, err
+		}
+	}
+	return blogPost, nil
 }
 
 func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
