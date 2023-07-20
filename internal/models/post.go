@@ -38,6 +38,34 @@ func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
 	return blogPost, nil
 }
 
+func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
+	stmt := `
+        SELECT id, title, post, last_update, created
+        FROM posts
+        ORDER BY id DESC;
+    `
+	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	blogPosts := []*BlogPost{}
+	for rows.Next() {
+		blogPost := &BlogPost{}
+		err = rows.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
+		if err != nil {
+			return nil, err
+		}
+		blogPosts = append(blogPosts, blogPost)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return blogPosts, nil
+}
+
 func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
 	stmt := `
         SELECT id, title, post, last_update, created

@@ -79,7 +79,35 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) posts(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello from posts"))
+	if r.URL.Path != "/post/" {
+		app.notFound(w)
+		return
+	}
+
+	blogPosts, err := app.blogPosts.GetAll()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	files := []string{
+		"./ui/html/base.tmpl",
+		"./ui/html/partials/nav.tmpl",
+		"./ui/html/pages/posts.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	data := &templateData{BlogPosts: blogPosts}
+
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
 
 func (app *application) about(w http.ResponseWriter, r *http.Request) {
