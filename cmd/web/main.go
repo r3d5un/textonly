@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"flag"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -11,9 +12,10 @@ import (
 )
 
 type application struct {
-	errorLog  *log.Logger
-	infoLog   *log.Logger
-	blogPosts *models.BlogPostModel
+	errorLog      *log.Logger
+	infoLog       *log.Logger
+	blogPosts     *models.BlogPostModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
@@ -39,10 +41,16 @@ func main() {
 	}
 	defer db.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	app := &application{
-		errorLog:  errorLog,
-		infoLog:   infoLog,
-		blogPosts: &models.BlogPostModel{DB: db},
+		errorLog:      errorLog,
+		infoLog:       infoLog,
+		blogPosts:     &models.BlogPostModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	srv := &http.Server{
