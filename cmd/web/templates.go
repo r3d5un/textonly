@@ -23,7 +23,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		name := filepath.Base(page)
 		files := []string{
 			"./ui/html/base.tmpl",
-			"./ui/html/base.tmpl",
+			"./ui/html/partials/nav.tmpl",
 			page,
 		}
 
