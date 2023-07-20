@@ -39,5 +39,30 @@ func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
 }
 
 func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
-	return nil, nil
+	stmt := `
+        SELECT id, title, post, last_update, created
+        FROM posts
+        ORDER BY id DESC
+        LIMIT $1;
+    `
+	rows, err := m.DB.Query(stmt, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	blogPosts := []*BlogPost{}
+	for rows.Next() {
+		blogPost := &BlogPost{}
+		err = rows.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
+		if err != nil {
+			return nil, err
+		}
+		blogPosts = append(blogPosts, blogPost)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return blogPosts, nil
 }
