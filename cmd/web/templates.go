@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/russross/blackfriday/v2"
 	"html/template"
 	"path/filepath"
 	"textonly.islandwind.me/internal/models"
@@ -48,6 +49,11 @@ func humanDate(t time.Time) string {
 	return t.Format("2006-01-02 15:04")
 }
 
+func markdownToHTML(input string) template.HTML {
+	return template.HTML(blackfriday.Run([]byte(input)))
+}
+
 var functions = template.FuncMap{
-	"humanDate": humanDate,
+	"humanDate":      humanDate,
+	"markdownToHTML": markdownToHTML,
 }
