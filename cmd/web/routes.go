@@ -14,5 +14,5 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/post/", app.posts)
 	mux.HandleFunc("/about/", app.about)
 
-	return secureHeaders(mux)
+	return app.logRequest(secureHeaders(mux))
 }
