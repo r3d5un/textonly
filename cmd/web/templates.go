@@ -4,6 +4,7 @@ import (
 	"github.com/russross/blackfriday/v2"
 	"html/template"
 	"path/filepath"
+	"regexp"
 	"textonly.islandwind.me/internal/models"
 	"time"
 )
@@ -49,8 +50,13 @@ func humanDate(t time.Time) string {
 	return t.Format("2006-01-02 15:04")
 }
 
+func removeMarkdownTitle(input string) string {
+	re := regexp.MustCompile(`(?m)^#([^#].*)`)
+	return re.ReplaceAllString(input, "")
+}
+
 func markdownToHTML(input string) template.HTML {
-	return template.HTML(blackfriday.Run([]byte(input)))
+	return template.HTML(blackfriday.Run([]byte(removeMarkdownTitle(input))))
 }
 
 var functions = template.FuncMap{
