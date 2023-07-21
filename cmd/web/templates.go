@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"path/filepath"
 	"textonly.islandwind.me/internal/models"
+	"time"
 )
 
 type templateData struct {
@@ -22,7 +23,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 
-		ts, err := template.ParseFiles("./ui/html/base.tmpl")
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl")
 		if err != nil {
 			return nil, err
 		}
@@ -41,4 +42,12 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	}
 
 	return cache, nil
+}
+
+func humanDate(t time.Time) string {
+	return t.Format("2006-01-02 15:04")
+}
+
+var functions = template.FuncMap{
+	"humanDate": humanDate,
 }
