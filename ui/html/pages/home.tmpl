@@ -6,7 +6,7 @@
       <div class="container-fluid py-5">
         {{ with index .BlogPosts 0 }}
         <h1 class="display-5 fw-bold">{{ .Title }}</h1>
-        <p class="col-md-8 fs-4">{{ printf "%.250s" .Post }}...</p>
+        <p class="col-md-8 fs-4">{{ .Lead }}</p>
         <a class="btn btn-outline-light btn-lg" role="button" href="/post/read/?id={{ .ID }}">Read more</a>
         {{ end }}
       </div>
@@ -18,7 +18,7 @@
         {{ with index .BlogPosts 1 }}
         <div class="h-100 p-5 bg-dark text-white border rounded-3">
           <h2>{{ .Title }}</h2>
-          <p>{{ printf "%.250s" .Post }}...</p>
+          <p>{{ .Lead }}</p>
           <a class="btn btn-outline-light" role="button" href="/post/read/?id={{ .ID }}">Read more</a>
         </div>
         {{ end }}
@@ -29,7 +29,7 @@
         {{ with index .BlogPosts 2 }}
         <div class="h-100 p-5 bg-dark text-white border rounded-3">
           <h2>{{ .Title }}</h2>
-          <p>{{ printf "%.250s" .Post }}...</p>
+          <p>{{ .Lead }}</p>
           <a class="btn btn-outline-light" role="button" href="/post/read/?id={{ .ID }}">Read more</a>
         </div>
         {{ end }}

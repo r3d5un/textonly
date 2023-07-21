@@ -9,6 +9,7 @@ import (
 type BlogPost struct {
 	ID         int
 	Title      string
+	Lead       string
 	Post       string
 	LastUpdate time.Time
 	Created    time.Time
@@ -20,14 +21,14 @@ type BlogPostModel struct {
 
 func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
 	stmt := `
-        SELECT id, title, post, last_update, created
+        SELECT id, title, lead, post, last_update, created
         FROM posts
         WHERE id = $1;
     `
 	row := m.DB.QueryRow(stmt, id)
 	blogPost := &BlogPost{}
 
-	err := row.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
+	err := row.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Lead, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -40,7 +41,7 @@ func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
 
 func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
 	stmt := `
-        SELECT id, title, post, last_update, created
+        SELECT id, title, lead, post, last_update, created
         FROM posts
         ORDER BY id DESC;
     `
@@ -53,7 +54,7 @@ func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
 	blogPosts := []*BlogPost{}
 	for rows.Next() {
 		blogPost := &BlogPost{}
-		err = rows.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
+		err = rows.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Lead, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +69,7 @@ func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
 
 func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
 	stmt := `
-        SELECT id, title, post, last_update, created
+        SELECT id, title, lead, post, last_update, created
         FROM posts
         ORDER BY id DESC
         LIMIT $1;
@@ -82,7 +83,7 @@ func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
 	blogPosts := []*BlogPost{}
 	for rows.Next() {
 		blogPost := &BlogPost{}
-		err = rows.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
+		err = rows.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Lead, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
 		if err != nil {
 			return nil, err
 		}
