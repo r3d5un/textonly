@@ -7,7 +7,7 @@
         {{ with index .BlogPosts 0 }}
         <h1 class="display-5 fw-bold">{{ .Title }}</h1>
         <p class="col-md-8 fs-4">{{ .Lead }}</p>
-        <a class="btn btn-outline-light btn-lg" role="button" href="/post/read/?id={{ .ID }}">Read more</a>
+        <a class="btn btn-outline-light btn-lg" role="button" href="/post/read/{{ .ID }}">Read more</a>
         {{ end }}
       </div>
     </div>
@@ -19,7 +19,7 @@
         <div class="h-100 p-5 bg-dark text-white border rounded-3">
           <h2>{{ .Title }}</h2>
           <p>{{ .Lead }}</p>
-          <a class="btn btn-outline-light" role="button" href="/post/read/?id={{ .ID }}">Read more</a>
+          <a class="btn btn-outline-light" role="button" href="/post/read/{{ .ID }}">Read more</a>
         </div>
         {{ end }}
         {{ end }}
@@ -30,7 +30,7 @@
         <div class="h-100 p-5 bg-dark text-white border rounded-3">
           <h2>{{ .Title }}</h2>
           <p>{{ .Lead }}</p>
-          <a class="btn btn-outline-light" role="button" href="/post/read/?id={{ .ID }}">Read more</a>
+          <a class="btn btn-outline-light" role="button" href="/post/read/{{ .ID }}">Read more</a>
         </div>
         {{ end }}
         {{ end }}

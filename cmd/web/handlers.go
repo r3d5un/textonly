@@ -5,15 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/julienschmidt/httprouter"
 	"textonly.islandwind.me/internal/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		app.notFound(w)
-		return
-	}
-
 	blogPosts, err := app.blogPosts.LastN(3)
 	if err != nil {
 		app.serverError(w, err)
@@ -26,7 +22,8 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	params := httprouter.ParamsFromContext(r.Context())
+	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
 		return
@@ -48,11 +45,6 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) posts(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/post/" {
-		app.notFound(w)
-		return
-	}
-
 	blogPosts, err := app.blogPosts.GetAll()
 	if err != nil {
 		app.serverError(w, err)
@@ -65,20 +57,10 @@ func (app *application) posts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) about(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/about/" {
-		app.notFound(w)
-		return
-	}
-
 	app.render(w, http.StatusOK, "about.tmpl", &templateData{})
 }
 
 func (app *application) feed(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/feed.rss" {
-		app.notFound(w)
-		return
-	}
-
 	blogPosts, err := app.blogPosts.GetAll()
 	if err != nil {
 		app.serverError(w, err)
