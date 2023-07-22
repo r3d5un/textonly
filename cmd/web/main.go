@@ -22,7 +22,7 @@ type application struct {
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	dsn := flag.String(
-		"dns",
+		"dsn",
 		"user=postgres "+
 			"password=postgres "+
 			"host=localhost "+
