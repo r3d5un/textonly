@@ -9,7 +9,7 @@ COPY *.go ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build ./cmd/web
 
-EXPOSE 4000
+EXPOSE 8080
 
 CMD [ "./web" ]
 

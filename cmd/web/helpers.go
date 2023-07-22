@@ -69,7 +69,7 @@ func (app *application) renderXML(w http.ResponseWriter, status int, data *templ
 func GetURL() string {
 	url, err := os.LookupEnv("URL")
 	if !err {
-		url = ":4000"
+		url = ":8080"
 	}
 
 	return url
