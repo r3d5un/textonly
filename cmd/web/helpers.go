@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"os"
 	"runtime/debug"
 	"text/template"
 )
@@ -63,4 +64,27 @@ func (app *application) renderXML(w http.ResponseWriter, status int, data *templ
 	w.WriteHeader(status)
 
 	buf.WriteTo(w)
+}
+
+func GetURL() string {
+	url, err := os.LookupEnv("URL")
+	if !err {
+		url = ":4000"
+	}
+
+	return url
+}
+
+func GetDBDSN() string {
+	dsn, err := os.LookupEnv("DSN")
+	if !err {
+		dsn = "user=postgres " +
+			"password=postgres " +
+			"host=localhost " +
+			"port=5432 " +
+			"dbname=blog " +
+			"sslmode=disable "
+	}
+
+	return dsn
 }

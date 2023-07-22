@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"flag"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"html/template"
 	"log"
@@ -20,23 +19,13 @@ type application struct {
 }
 
 func main() {
-	addr := flag.String("addr", ":4000", "HTTP network address")
-	dsn := flag.String(
-		"dsn",
-		"user=postgres "+
-			"password=postgres "+
-			"host=localhost "+
-			"port=5432 "+
-			"dbname=blog "+
-			"sslmode=disable ",
-		"PostgreSQL data source DSN",
-	)
-	flag.Parse()
+	addr := GetURL()
+	dsn := GetDBDSN()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime)
 
-	db, err := openDB(*dsn)
+	db, err := openDB(dsn)
 	if err != nil {
 		errorLog.Fatal(err)
 	}
@@ -60,12 +49,12 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:     *addr,
+		Addr:     addr,
 		ErrorLog: errorLog,
 		Handler:  app.routes(),
 	}
 
-	infoLog.Printf("Starting server on %s", *addr)
+	infoLog.Printf("Starting server on %s", addr)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
 }
