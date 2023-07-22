@@ -58,7 +58,10 @@ func newFeedTemplateCache() (map[string]*template.Template, error) {
 }
 
 func humanDate(t time.Time) string {
-	return t.Format("2006-01-02 15:04")
+	if t.IsZero() {
+		return ""
+	}
+	return t.UTC().Format("2006-01-02 15:04")
 }
 
 func removeMarkdownTitle(input string) string {
