@@ -72,3 +72,20 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 
 	app.render(w, http.StatusOK, "about.tmpl", &templateData{})
 }
+
+func (app *application) feed(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/feed.rss" {
+		app.notFound(w)
+		return
+	}
+
+	blogPosts, err := app.blogPosts.GetAll()
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.renderXML(w, http.StatusOK, &templateData{
+		BlogPosts: blogPosts,
+	})
+}

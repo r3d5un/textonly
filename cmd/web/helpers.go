@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"text/template"
 )
 
 func (app *application) serverError(w http.ResponseWriter, err error) {
@@ -33,6 +34,27 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 	buf := new(bytes.Buffer)
 
 	err := ts.ExecuteTemplate(buf, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	w.WriteHeader(status)
+
+	buf.WriteTo(w)
+}
+
+func (app *application) renderXML(w http.ResponseWriter, status int, data *templateData) {
+	ts, err := template.ParseFiles("./ui/xml/feed.tmpl")
+	if err != nil {
+		err := fmt.Errorf("the feed template does not exist")
+		app.serverError(w, err)
+		return
+	}
+
+	buf := new(bytes.Buffer)
+
+	err = ts.ExecuteTemplate(buf, "feed.tmpl", data)
 	if err != nil {
 		app.serverError(w, err)
 		return

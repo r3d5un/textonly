@@ -46,6 +46,19 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	return cache, nil
 }
 
+func newFeedTemplateCache() (map[string]*template.Template, error) {
+	cache := map[string]*template.Template{}
+
+	ts, err := template.ParseFiles("./ui/xml/feed.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	cache["feed"] = ts
+
+	return cache, nil
+}
+
 func humanDate(t time.Time) string {
 	return t.Format("2006-01-02 15:04")
 }

@@ -16,6 +16,7 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/post/read/", app.readPost)
 	mux.HandleFunc("/post/", app.posts)
 	mux.HandleFunc("/about/", app.about)
+	mux.HandleFunc("/feed.rss", app.feed)
 
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 

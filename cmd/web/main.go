@@ -16,6 +16,7 @@ type application struct {
 	infoLog       *log.Logger
 	blogPosts     *models.BlogPostModel
 	templateCache map[string]*template.Template
+	feedCache     map[string]*template.Template
 }
 
 func main() {
@@ -45,12 +46,17 @@ func main() {
 	if err != nil {
 		errorLog.Fatal(err)
 	}
+	feedCache, err := newFeedTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
 
 	app := &application{
 		errorLog:      errorLog,
 		infoLog:       infoLog,
 		blogPosts:     &models.BlogPostModel{DB: db},
 		templateCache: templateCache,
+		feedCache:     feedCache,
 	}
 
 	srv := &http.Server{
