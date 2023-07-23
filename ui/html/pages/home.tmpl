@@ -2,7 +2,7 @@
 {{ define "main" }}
   <div class="container py-4">
     {{ if index .BlogPosts 0 }}
-    <div class="p-5 mb-4 bg-dark text-white">
+    <div class="p-5 mb-4 bg-dark">
       <div class="container-fluid py-5">
         {{ with index .BlogPosts 0 }}
         <h1 class="display-5 fw-bold">{{ .Title }}</h1>
@@ -16,7 +16,7 @@
       <div class="col-md-6">
         {{ if index .BlogPosts 1 }}
         {{ with index .BlogPosts 1 }}
-        <div class="h-100 p-5 bg-dark text-white border rounded-3">
+        <div class="h-100 p-5 bg-dark border rounded-3">
           <h2>{{ .Title }}</h2>
           <p>{{ .Lead }}</p>
           <a class="btn btn-outline-light" role="button" href="/post/read/{{ .ID }}">Read more</a>
@@ -27,7 +27,7 @@
       <div class="col-md-6">
         {{ if index .BlogPosts 2 }}
         {{ with index .BlogPosts 2 }}
-        <div class="h-100 p-5 bg-dark text-white border rounded-3">
+        <div class="h-100 p-5 bg-dark border rounded-3">
           <h2>{{ .Title }}</h2>
           <p>{{ .Lead }}</p>
           <a class="btn btn-outline-light" role="button" href="/post/read/{{ .ID }}">Read more</a>

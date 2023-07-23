@@ -16,8 +16,11 @@
                 <ul class="list mb-5" style="list-style-type: none;">
                     {{ range .BlogPosts }}
                     <li style="list-style: none;">
-                    <a href="/post/read/{{ .ID }}">{{ .Title }}</a>
-                    <span title="{{ humanDate .Created }}" style="float: right;color: var(--bs-gray-600);">{{ humanDate .Created }}</span>
+                        <span title="{{ humanDate .Created }}" style="color: var(--bs-gray-600);">{{ humanDate .Created }}</span>
+                         - 
+                        <a href="/post/read/{{ .ID }}">
+                            {{ .Title }}
+                        </a>
                     </li>{{ end }}
                 </ul>
             </div>
