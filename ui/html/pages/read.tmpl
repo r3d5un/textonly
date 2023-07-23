@@ -3,38 +3,13 @@
     {{with .BlogPost}}
         <div class="container mt-5">
             <div class="row">
-                <div class="col-lg-8">
-                    <article>
-                        <header class="mb-4">
-                            <h1 class="fw-bolder mb-1">{{.Title}}</h1>
-                            <div class="text-muted fst-italic mb-2">Posted {{humanDate .Created}}</div>
-                        </header>
-                        <section class="mb-5">
-                            {{markdownToHTML .Post}}
-                        </section>
-                    </article>
+                <div class="col-lg-4 py-5">
+                    <h1 class="display-5 fw-bold">{{ .Title }}</h1>
+                    <div class="text-muted fst-italic mb-2">Posted {{humanDate .Created}}</div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="card mb-4">
-                        <div class="card-header">Categories</div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <ul class="list-unstyled mb-0">
-                                        <li><a href="#!">Web Design</a></li>
-                                        <li><a href="#!">HTML</a></li>
-                                        <li><a href="#!">Freebies</a></li>
-                                    </ul>
-                                </div>
-                                <div class="col-sm-6">
-                                    <ul class="list-unstyled mb-0">
-                                        <li><a href="#!">JavaScript</a></li>
-                                        <li><a href="#!">CSS</a></li>
-                                        <li><a href="#!">Tutorials</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+                <div class="col-lg-8">
+                    <div class="posts-container mx-auto px-3 py-5">
+                        {{ markdownToHTML .Post }}
                     </div>
                 </div>
             </div>
