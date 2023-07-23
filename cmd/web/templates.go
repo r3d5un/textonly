@@ -14,6 +14,8 @@ import (
 type templateData struct {
 	BlogPost  *models.BlogPost
 	BlogPosts []*models.BlogPost
+	Socials   []*models.Social
+	User      *models.User
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {

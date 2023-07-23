@@ -57,7 +57,22 @@ func (app *application) posts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) about(w http.ResponseWriter, r *http.Request) {
-	app.render(w, http.StatusOK, "about.tmpl", &templateData{})
+	user, err := app.user.Get(1)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	socials, err := app.sosials.GetByUserID(user.ID)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.render(w, http.StatusOK, "about.tmpl", &templateData{
+		User:    user,
+		Socials: socials,
+	})
 }
 
 func (app *application) feed(w http.ResponseWriter, r *http.Request) {
