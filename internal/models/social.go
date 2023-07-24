@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"log"
 )
 
 type Social struct {
@@ -12,15 +13,18 @@ type Social struct {
 }
 
 type SocialModel struct {
-	DB *sql.DB
+	DB       *sql.DB
+	InfoLog  *log.Logger
+	ErrorLog *log.Logger
 }
 
 func (m *SocialModel) GetByUserID(id int) ([]*Social, error) {
 	stmt := `
         SELECT id, user_id, social_platform, link
         FROM socials
-        WHERE user_id = $1
-    `
+        WHERE user_id = $1;`
+	m.InfoLog.Print("query statement: ", stmt)
+
 	rows, err := m.DB.Query(stmt, id)
 	if err != nil {
 		return nil, err

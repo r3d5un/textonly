@@ -45,9 +45,9 @@ func main() {
 	app := &application{
 		errorLog:      errorLog,
 		infoLog:       infoLog,
-		blogPosts:     &models.BlogPostModel{DB: db},
-		sosials:       &models.SocialModel{DB: db},
-		user:          &models.UserModel{DB: db},
+		blogPosts:     &models.BlogPostModel{DB: db, InfoLog: infoLog, ErrorLog: errorLog},
+		sosials:       &models.SocialModel{DB: db, InfoLog: infoLog, ErrorLog: errorLog},
+		user:          &models.UserModel{DB: db, InfoLog: infoLog, ErrorLog: errorLog},
 		templateCache: templateCache,
 		feedCache:     feedCache,
 	}

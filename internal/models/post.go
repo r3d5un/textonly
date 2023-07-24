@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"time"
 )
 
@@ -16,15 +17,18 @@ type BlogPost struct {
 }
 
 type BlogPostModel struct {
-	DB *sql.DB
+	DB       *sql.DB
+	InfoLog  *log.Logger
+	ErrorLog *log.Logger
 }
 
 func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
 	stmt := `
         SELECT id, title, lead, post, last_update, created
         FROM posts
-        WHERE id = $1;
-    `
+        WHERE id = $1;`
+	m.InfoLog.Print("query statement: ", stmt)
+
 	row := m.DB.QueryRow(stmt, id)
 	blogPost := &BlogPost{}
 
@@ -43,8 +47,9 @@ func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
 	stmt := `
         SELECT id, title, lead, post, last_update, created
         FROM posts
-        ORDER BY id DESC;
-    `
+        ORDER BY id DESC;`
+	m.InfoLog.Print("query statement: ", stmt)
+
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -72,8 +77,9 @@ func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
         SELECT id, title, lead, post, last_update, created
         FROM posts
         ORDER BY id DESC
-        LIMIT $1;
-    `
+        LIMIT $1;`
+	m.InfoLog.Print("query statement: ", stmt)
+
 	rows, err := m.DB.Query(stmt, limit)
 	if err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"log"
 )
 
 type User struct {
@@ -13,7 +14,9 @@ type User struct {
 }
 
 type UserModel struct {
-	DB *sql.DB
+	DB       *sql.DB
+	InfoLog  *log.Logger
+	ErrorLog *log.Logger
 }
 
 func (m *UserModel) Get(id int) (*User, error) {
@@ -21,8 +24,9 @@ func (m *UserModel) Get(id int) (*User, error) {
         SELECT user_id, name, summary, content
         FROM users
         WHERE user_id = $1
-        LIMIT 1;
-    `
+        LIMIT 1;`
+	m.InfoLog.Print("query statement: ", stmt)
+
 	row := m.DB.QueryRow(stmt, id)
 	user := &User{}
 
