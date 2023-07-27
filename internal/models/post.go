@@ -32,7 +32,14 @@ func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
 	row := m.DB.QueryRow(stmt, id)
 	blogPost := &BlogPost{}
 
-	err := row.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Lead, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
+	err := row.Scan(
+		&blogPost.ID,
+		&blogPost.Title,
+		&blogPost.Lead,
+		&blogPost.Post,
+		&blogPost.LastUpdate,
+		&blogPost.Created,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -59,7 +66,14 @@ func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
 	blogPosts := []*BlogPost{}
 	for rows.Next() {
 		blogPost := &BlogPost{}
-		err = rows.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Lead, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
+		err = rows.Scan(
+			&blogPost.ID,
+			&blogPost.Title,
+			&blogPost.Lead,
+			&blogPost.Post,
+			&blogPost.LastUpdate,
+			&blogPost.Created,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +103,14 @@ func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
 	blogPosts := []*BlogPost{}
 	for rows.Next() {
 		blogPost := &BlogPost{}
-		err = rows.Scan(&blogPost.ID, &blogPost.Title, &blogPost.Lead, &blogPost.Post, &blogPost.LastUpdate, &blogPost.Created)
+		err = rows.Scan(
+			&blogPost.ID,
+			&blogPost.Title,
+			&blogPost.Lead,
+			&blogPost.Post,
+			&blogPost.LastUpdate,
+			&blogPost.Created,
+		)
 		if err != nil {
 			return nil, err
 		}
