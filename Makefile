@@ -54,9 +54,9 @@ vendor:
 # BUILD
 # ==================================================================================== #
 
-## build/api: build the cmd/api application
-.PHONY: build/api
+## build/web: build the cmd/web application
+.PHONY: build/web
 build/web:
-	@echo 'Building cmd/api...'
+	@echo 'Building cmd/web...'
 	go build -ldflags='-s' -o=./bin/web ./cmd/web
-	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/api ./cmd/api
+	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/web ./cmd/web
