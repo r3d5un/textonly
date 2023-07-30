@@ -2,8 +2,9 @@ package main
 
 import (
 	"testing"
-	"textonly.islandwind.me/internal/assert"
 	"time"
+
+	"textonly.islandwind.me/internal/assert"
 )
 
 func TestHumanDate(t *testing.T) {

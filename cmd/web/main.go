@@ -2,11 +2,12 @@ package main
 
 import (
 	"database/sql"
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"textonly.islandwind.me/internal/models"
 )
 
