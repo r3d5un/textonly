@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/russross/blackfriday/v2"
 	"html/template"
 	"io/fs"
 	"path/filepath"
 	"regexp"
+	"time"
+
+	"github.com/russross/blackfriday/v2"
 	"textonly.islandwind.me/internal/models"
 	"textonly.islandwind.me/ui"
-	"time"
 )
 
 type templateData struct {
