@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"flag"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,6 +11,11 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"textonly.islandwind.me/internal/models"
+	"textonly.islandwind.me/internal/vcs"
+)
+
+var (
+	version = vcs.Version()
 )
 
 type application struct {
@@ -22,6 +29,14 @@ type application struct {
 }
 
 func main() {
+	displayVersion := flag.Bool("version", false, "Display version and exit")
+
+	flag.Parse()
+
+	if *displayVersion {
+		fmt.Printf("textonly.islandwind.me %s\n", version)
+	}
+
 	addr := GetURL()
 	dsn := GetDBDSN()
 
