@@ -25,7 +25,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/about", app.about)
 	router.HandlerFunc(http.MethodGet, "/feed.rss", app.feed)
 
-	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+	standard := alice.New(app.recoverPanic, app.rateLimit, app.logRequest, secureHeaders)
 
 	return standard.Then(router)
 }
