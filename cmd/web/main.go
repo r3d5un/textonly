@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"log"
-	"net/http"
 	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -68,14 +67,8 @@ func main() {
 		feedCache:     feedCache,
 	}
 
-	srv := &http.Server{
-		Addr:     addr,
-		ErrorLog: errorLog,
-		Handler:  app.routes(),
-	}
-
 	infoLog.Printf("Starting server on %s", addr)
-	err = srv.ListenAndServe()
+	err = app.serve(addr)
 	errorLog.Fatal(err)
 }
 
