@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -18,8 +18,7 @@ var (
 )
 
 type application struct {
-	errorLog      *log.Logger
-	infoLog       *log.Logger
+	logger        *slog.Logger
 	blogPosts     *models.BlogPostModel
 	sosials       *models.SocialModel
 	user          *models.UserModel
@@ -36,40 +35,48 @@ func main() {
 		fmt.Printf("textonly.islandwind.me %s\n", version)
 	}
 
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	addr := GetURL()
 	dsn := GetDBDSN()
 
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime)
-
+	logger.Info("opening database connection pool...")
 	db, err := openDB(dsn)
 	if err != nil {
-		errorLog.Fatal(err)
+		logger.Error("unable to open database connection pool", "error", err)
+		os.Exit(1)
 	}
 	defer db.Close()
+	logger.Info("database connection pool established")
 
+	logger.Info("caching templates...")
 	templateCache, err := newTemplateCache()
 	if err != nil {
-		errorLog.Fatal(err)
+		logger.Error("an error occurred while caching templates", "error", err)
+		os.Exit(1)
 	}
 	feedCache, err := newFeedTemplateCache()
 	if err != nil {
-		errorLog.Fatal(err)
+		logger.Error("an error occurred while caching templates", "error", err)
+		os.Exit(1)
 	}
+	logger.Info("templates successfully cached")
 
 	app := &application{
-		errorLog:      errorLog,
-		infoLog:       infoLog,
-		blogPosts:     &models.BlogPostModel{DB: db, InfoLog: infoLog, ErrorLog: errorLog},
-		sosials:       &models.SocialModel{DB: db, InfoLog: infoLog, ErrorLog: errorLog},
-		user:          &models.UserModel{DB: db, InfoLog: infoLog, ErrorLog: errorLog},
+		logger:        logger,
+		blogPosts:     &models.BlogPostModel{DB: db},
+		sosials:       &models.SocialModel{DB: db},
+		user:          &models.UserModel{DB: db},
 		templateCache: templateCache,
 		feedCache:     feedCache,
 	}
 
-	infoLog.Printf("Starting server on %s", addr)
 	err = app.serve(addr)
-	errorLog.Fatal(err)
+	if err != nil {
+		logger.Error("an error occurred", "error", err)
+		os.Exit(1)
+	}
 }
 
 func openDB(dsn string) (*sql.DB, error) {

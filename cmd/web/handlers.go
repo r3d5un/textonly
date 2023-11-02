@@ -10,13 +10,13 @@ import (
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	app.infoLog.Printf("querying blogposts")
+	app.logger.Info("querying blogposts")
 	blogPosts, err := app.blogPosts.LastN(3)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-	app.infoLog.Printf("retrieved %d blogposts", len(blogPosts))
+	app.logger.Info("retrieved blogposts", "number", len(blogPosts))
 
 	app.render(w, http.StatusOK, "home.tmpl", &templateData{
 		BlogPosts: blogPosts,
@@ -31,7 +31,7 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.infoLog.Printf("querying for blog post with id %d", id)
+	app.logger.Info("querying blogpost", "id", id)
 	blogPost, err := app.blogPosts.Get(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
@@ -41,7 +41,7 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	app.infoLog.Printf("retrieved post %d - %s", blogPost.ID, blogPost.Title)
+	app.logger.Info("retrieved post", "id", blogPost.ID, "title", blogPost.Title)
 
 	app.render(w, http.StatusOK, "read.tmpl", &templateData{
 		BlogPost: blogPost,
@@ -49,13 +49,13 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) posts(w http.ResponseWriter, r *http.Request) {
-	app.infoLog.Printf("querying blogposts")
+	app.logger.Info("querying blogposts")
 	blogPosts, err := app.blogPosts.GetAll()
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-	app.infoLog.Printf("retrieved %d blogposts", len(blogPosts))
+	app.logger.Info("retrieved blogposts", "number", len(blogPosts))
 
 	app.render(w, http.StatusOK, "posts.tmpl", &templateData{
 		BlogPosts: blogPosts,
@@ -63,20 +63,23 @@ func (app *application) posts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) about(w http.ResponseWriter, r *http.Request) {
-	app.infoLog.Printf("querying user data")
+	app.logger.Info("querying user data")
 	user, err := app.user.Get(1)
 	if err != nil {
+		app.logger.Error("unable to query user data", "error", err)
 		app.serverError(w, err)
 		return
 	}
+	app.logger.Info("retrieved user data", "user", user)
 
-	app.infoLog.Printf("querying social data")
+	app.logger.Info("querying social data")
 	socials, err := app.sosials.GetByUserID(user.ID)
 	if err != nil {
+		app.logger.Error("uanble to query social data", "error", err)
 		app.serverError(w, err)
 		return
 	}
-	app.infoLog.Printf("retrieved %d socials", len(socials))
+	app.logger.Info("retrieved socials", "socials", socials)
 
 	app.render(w, http.StatusOK, "about.tmpl", &templateData{
 		User:    user,
@@ -85,13 +88,14 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) feed(w http.ResponseWriter, r *http.Request) {
-	app.infoLog.Printf("querying blogposts")
+	app.logger.Info("querying blogposts")
 	blogPosts, err := app.blogPosts.GetAll()
 	if err != nil {
+		app.logger.Error("unable to query blogposts", "error", err)
 		app.serverError(w, err)
 		return
 	}
-	app.infoLog.Printf("retrieved %d blogposts", len(blogPosts))
+	app.logger.Info("retrieved blogposts", "amount", len(blogPosts))
 
 	app.renderXML(w, http.StatusOK, &templateData{
 		BlogPosts: blogPosts,

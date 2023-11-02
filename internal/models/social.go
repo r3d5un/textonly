@@ -2,7 +2,7 @@ package models
 
 import (
 	"database/sql"
-	"log"
+	"log/slog"
 )
 
 type Social struct {
@@ -13,9 +13,7 @@ type Social struct {
 }
 
 type SocialModel struct {
-	DB       *sql.DB
-	InfoLog  *log.Logger
-	ErrorLog *log.Logger
+	DB *sql.DB
 }
 
 func (m *SocialModel) GetByUserID(id int) ([]*Social, error) {
@@ -23,10 +21,11 @@ func (m *SocialModel) GetByUserID(id int) ([]*Social, error) {
         SELECT id, user_id, social_platform, link
         FROM socials
         WHERE user_id = $1;`
-	m.InfoLog.Print("query statement: ", stmt)
 
+	slog.Info("querying socials", "query", stmt, "id", id)
 	rows, err := m.DB.Query(stmt, id)
 	if err != nil {
+		slog.Error("unable to query socials", "query", stmt, "id", id, "error", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -41,11 +40,13 @@ func (m *SocialModel) GetByUserID(id int) ([]*Social, error) {
 			&social.Link,
 		)
 		if err != nil {
+			slog.Error("unable to query socials", "query", stmt, "id", id, "error", err)
 			return nil, err
 		}
 		socials = append(socials, social)
 	}
 	if err = rows.Err(); err != nil {
+		slog.Error("unable to query socials", "query", stmt, "id", id, "error", err)
 		return nil, err
 	}
 
