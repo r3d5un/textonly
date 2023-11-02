@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"log"
+	"log/slog"
 )
 
 type User struct {
@@ -14,9 +14,7 @@ type User struct {
 }
 
 type UserModel struct {
-	DB       *sql.DB
-	InfoLog  *log.Logger
-	ErrorLog *log.Logger
+	DB *sql.DB
 }
 
 func (m *UserModel) Get(id int) (*User, error) {
@@ -25,16 +23,18 @@ func (m *UserModel) Get(id int) (*User, error) {
         FROM users
         WHERE user_id = $1
         LIMIT 1;`
-	m.InfoLog.Print("query statement: ", stmt)
 
+	slog.Info("querying database for user", "query", stmt, "id", id)
 	row := m.DB.QueryRow(stmt, id)
 	user := &User{}
 
 	err := row.Scan(&user.ID, &user.Name, &user.Summary, &user.Content)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			slog.Info("no records found", "error", err)
 			return nil, ErrNoRecord
 		} else {
+			slog.Error("unable to query user", "error", err)
 			return nil, err
 		}
 	}
