@@ -3,7 +3,7 @@ name: Build and Publish to DigitalOcean
 on: workflow_dispatch
 
 env:
-  REGISTRY: registry.digitalocean/
+  REGISTRY: registry.digitalocean.com
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
