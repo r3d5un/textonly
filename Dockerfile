@@ -1,4 +1,5 @@
-FROM golang:1.21-alpine
+# BASE IMAGE
+FROM golang:1.21-alpine as base
 
 WORKDIR /app
 
@@ -9,7 +10,11 @@ COPY *.go ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build ./cmd/web
 
-EXPOSE 8080
+# RUNNER
+FROM alpine:latest
+WORKDIR /app
+COPY --from=base /app/web .
 
+EXPOSE 8080
 CMD [ "./web" ]
 
