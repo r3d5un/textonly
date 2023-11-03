@@ -19,7 +19,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: name/app
+          images: {{ env.IMAGE_NAME }}
 
       - name: Build
         run: docker build -t ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }} .
