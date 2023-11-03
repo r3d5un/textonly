@@ -3,7 +3,7 @@ name: Build and Publish to DigitalOcean
 on: workflow_dispatch
 
 env:
-  REGISTRY: registry.digitalocean/r3d5un
+  REGISTRY: registry.digitalocean/
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
       - name: Tag Image
         run:
           docker tag ${{ env.IMAGE_NAME }}:latest \
-          registry.digitalocean.com/r3d5un/${{ env.IMAGE_NAME }}:latest
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: DigitalOcean Registry Push
-        run: docker push registry.digitalocean.com/r3d5un/${{ env.IMAGE_NAME }}:latest
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
