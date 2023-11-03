@@ -1,0 +1,41 @@
+name: Build and Publish to DigitalOcean
+
+on:
+  push:
+    tags: [ v* ]
+
+env:
+  REGISTRY: registry.digitalocean/r3d5un
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Docker Meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: name/app
+
+      - name: Build
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }} .
+
+      - name: Install DigitalOcean CLI Tools
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: DigitalOcean Registry Login
+        run: doctl registry login --expiry-seconds 600
+
+      - name: Tag Image
+        run:
+          docker tag ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }} \
+          registry.digitalocean.com/r3d5un/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
+
+      - name: DigitalOcean Registry Push
+        run: docker push registry.digitalocean.com/r3d5un/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
