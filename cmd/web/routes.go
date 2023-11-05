@@ -18,6 +18,10 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.FS(ui.Files))
 	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
+	// healthcheck
+	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+
+	// UI
 	router.HandlerFunc(http.MethodGet, "/", app.home)
 	router.HandlerFunc(http.MethodGet, "/home", app.home)
 	router.HandlerFunc(http.MethodGet, "/post/read/:id", app.readPost)
