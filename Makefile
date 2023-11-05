@@ -66,3 +66,19 @@ build/web:
 build/docker:
 	@echo 'Building docker image with tag ${tag}'
 	docker build -t textonly:${tag} .
+
+# ==================================================================================== #
+# DEPLOY DIGITALOCEAN
+# ==================================================================================== #
+
+## digitalocean/deploy
+.PHONY: digitalocean/deploy
+digitalocean/deploy:
+	@echo "Logging into DigitalOcean Registry"
+	doctl registry login
+	make audit
+	make build/docker tag=latest
+	@echo "Tagging build..."
+	docker tag textonly:latest registry.digitalocean.com/r3d5un/textonly:latest
+	@echo "Pushing to DigitalOcean"
+	docker push registry.digitalocean.com/r3d5un/textonly:latest
