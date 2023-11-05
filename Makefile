@@ -60,3 +60,9 @@ build/web:
 	@echo 'Building cmd/web...'
 	go build -ldflags='-s' -o=./bin/web ./cmd/web
 	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/web ./cmd/web
+
+## build/docker tag=$1: build the Docker image of the cmd/web application
+.PHONY: build/docker
+build/docker:
+	@echo 'Building docker image with tag ${tag}'
+	docker build -t textonly:${tag} .
