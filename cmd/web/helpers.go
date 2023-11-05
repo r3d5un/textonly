@@ -45,7 +45,7 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 }
 
 func (app *application) renderXML(w http.ResponseWriter, status int, data *templateData) {
-	ts, ok := app.feedCache["feed"]
+	ts, ok := app.templateCache["feed"]
 	if !ok {
 		err := fmt.Errorf("the feed template does not exist")
 		app.serverError(w, err)

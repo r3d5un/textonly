@@ -23,7 +23,6 @@ type application struct {
 	sosials       *models.SocialModel
 	user          *models.UserModel
 	templateCache map[string]*template.Template
-	feedCache     map[string]*template.Template
 }
 
 func main() {
@@ -56,11 +55,6 @@ func main() {
 		logger.Error("an error occurred while caching templates", "error", err)
 		os.Exit(1)
 	}
-	feedCache, err := newFeedTemplateCache()
-	if err != nil {
-		logger.Error("an error occurred while caching templates", "error", err)
-		os.Exit(1)
-	}
 	logger.Info("templates successfully cached")
 
 	app := &application{
@@ -69,7 +63,6 @@ func main() {
 		sosials:       &models.SocialModel{DB: db},
 		user:          &models.UserModel{DB: db},
 		templateCache: templateCache,
-		feedCache:     feedCache,
 	}
 
 	err = app.serve(addr)
