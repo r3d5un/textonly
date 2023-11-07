@@ -32,6 +32,12 @@ db/migrations/up: confirm
 # QUALITY CONTROL
 # ==================================================================================== #
 
+## test: run all tests found
+.PHONY: test
+test:
+	@echo 'Running tests'
+	go test ./...
+
 ## audit: tidy and vendor dependencies and format, vet and test all code
 .PHONY: audit
 audit: vendor
