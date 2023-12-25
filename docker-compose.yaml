@@ -10,3 +10,14 @@ services:
     ports:
       - '4000:4000'
     restart: "unless-stopped"
+  database:
+    image: 'postgres:16.0-alpine3.18'
+    restart: on-failure
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: blog
+    volumes:
+      - /home/r3d5un/Data/textonly-blog-data:/var/lib/postgresql/data

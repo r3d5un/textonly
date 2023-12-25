@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"io/fs"
+	"log/slog"
 	"path/filepath"
 	"regexp"
 	"time"
@@ -24,6 +25,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 
 	pages, err := fs.Glob(ui.Files, "html/pages/*.tmpl")
 	if err != nil {
+		slog.Error("an error occurred while walking template directory", "error", err)
 		return nil, err
 	}
 
@@ -40,22 +42,19 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		if err != nil {
 			return nil, err
 		}
+		slog.Info("parsed template", "template", name)
 
 		cache[name] = ts
 	}
 
-	return cache, nil
-}
-
-func newFeedTemplateCache() (map[string]*template.Template, error) {
-	cache := map[string]*template.Template{}
-
-	ts, err := template.ParseFS(ui.Files, "xml/feed.tmpl")
+	feedTemplate, err := template.ParseFS(ui.Files, "xml/feed.tmpl")
 	if err != nil {
+		slog.Error("an error occurred when collecting RSS feed template", "error", err)
 		return nil, err
 	}
+	slog.Info("parsed RSS feed template")
 
-	cache["feed"] = ts
+	cache["feed"] = feedTemplate
 
 	return cache, nil
 }
