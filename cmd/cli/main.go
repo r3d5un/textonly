@@ -29,3 +29,8 @@ administering the application. Instead, toctl is meant to be the primary
 way to manage publish and manage posts.`,
 	Version: "0.1",
 }
+
+func init() {
+	versionTemplate := `{{printf "%s: %s - version %s\n" .Name .Short .Version}}`
+	rootCmd.SetVersionTemplate(versionTemplate)
+}
