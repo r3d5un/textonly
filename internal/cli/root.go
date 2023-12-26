@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"fmt"
@@ -7,11 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func main() {
-	execute()
-}
-
-func execute() {
+func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
