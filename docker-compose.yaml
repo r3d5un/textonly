@@ -12,7 +12,7 @@ services:
     restart: "unless-stopped"
   database:
     image: 'postgres:16.0-alpine3.18'
-    restart: on-failure
+    restart: "unless-stopped"
     ports:
       - "5432:5432"
     environment:
