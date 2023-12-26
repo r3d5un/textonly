@@ -19,7 +19,7 @@ func execute() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "textonly.islandwind.me",
+	Use:   "toctl",
 	Short: "CLI tools for managing textonly",
 	Long: `textonly-control (toctl) is a collection of tools for managing
 the textonly blog application.
