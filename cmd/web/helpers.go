@@ -111,3 +111,21 @@ func (app *application) writeJSON(
 
 	return nil
 }
+
+func (app *application) redirectToLatestPost(w http.ResponseWriter, r *http.Request) {
+	posts, err := app.blogPosts.LastN(1)
+	if err != nil {
+		app.logger.Error("error occurred while redirecting", "error", err)
+		return
+	}
+
+	if len(posts) != 1 {
+		app.logger.Error("unexected number of posts returned", "posts", posts)
+		app.notFound(w)
+	}
+
+	urlString := fmt.Sprintf("/post/read/%d", posts[0].ID)
+
+	app.logger.Info("redirecting to last post", "url", urlString)
+	http.Redirect(w, r, urlString, http.StatusMovedPermanently)
+}

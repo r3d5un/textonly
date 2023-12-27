@@ -1,17 +1,9 @@
 {{define "title"}}Post #{{.BlogPost.ID}}{{end}}
 {{define "main"}}
     {{with .BlogPost}}
-        <div class="container mt-5">
-            <div class="row">
-                <div class="col-lg-4 py-5">
-                    <h1 class="display-5 fw-bold">{{ .Title }}</h1>
-                    <div class="text-muted fst-italic mb-2">Posted {{humanDate .Created}}</div>
-                </div>
-                <div class="col-lg-8">
-                    <div class="posts-container mx-auto px-3 py-5">
-                        {{ markdownToHTML .Post }}
-                    </div>
-                </div>
+        <div class="row">
+            <div class="container-fluid col-lg-5 mt-5">
+                {{ markdownToHTML .Post }}
             </div>
         </div>
     {{end}}

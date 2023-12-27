@@ -1,29 +1,19 @@
 {{ define "title" }}Posts{{ end }}
 {{define "main"}}
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-lg-4 py-5">
-            <!-- Categories widget-->
-            <h1 class="display-5 fw-bold">Posts</h1>
-            <p class="col-sm-8 col-lg-12 mx-auto mb-0 mb-lg-4">
-                Articles, posts and notes published on <a href="/">Islandwind</a>.
-            </p>
-        </div>
-        <div class="col-lg-6">
-            <div class="posts-container mx-auto py-5">
-                <ul class="list mb-5" style="list-style-type: none;">
-                    {{ range .BlogPosts }}
-                    <li style="list-style: none;">
-                        <span title="{{ humanDate .Created }}" style="color: var(--bs-gray-600);">{{ humanDate .Created }}</span>
-                         - 
-                        <a href="/post/read/{{ .ID }}">
-                            {{ .Title }}
-                        </a>
-                    </li>{{ end }}
-                </ul>
+<div class="row">
+    <div class="container-fluid col-lg-5 mt-5">
+        <h1 class="display-5 fw-bold">Posts</h1>
+        {{ range .BlogPosts }}
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ .Title }}</h5>
+                <span title="{{ humanDate .Created }}" style="color: var(--bs-gray-600);">{{ humanDate .Created }}</span>
+                <p class="card-text">{{ .Lead }}</p>
+                <a href="/post/read/{{ .ID }}" class="btn btn-primary">Read</a>
             </div>
         </div>
+        {{ end }}
     </div>
 </div>
 {{ end }}
