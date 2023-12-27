@@ -10,17 +10,7 @@ import (
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	app.logger.Info("querying blogposts")
-	blogPosts, err := app.blogPosts.LastN(3)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-	app.logger.Info("retrieved blogposts", "number", len(blogPosts))
-
-	app.render(w, http.StatusOK, "home.tmpl", &templateData{
-		BlogPosts: blogPosts,
-	})
+	app.redirectToLatestPost(w, r)
 }
 
 func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
