@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"log/slog"
 	"path/filepath"
-	"regexp"
 	"time"
 
 	"github.com/russross/blackfriday/v2"
@@ -66,13 +65,8 @@ func humanDate(t time.Time) string {
 	return t.UTC().Format("2006-01-02 15:04")
 }
 
-func removeMarkdownTitle(input string) string {
-	re := regexp.MustCompile(`(?m)^#([^#].*)`)
-	return re.ReplaceAllString(input, "")
-}
-
 func markdownToHTML(input string) template.HTML {
-	return template.HTML(blackfriday.Run([]byte(removeMarkdownTitle(input))))
+	return template.HTML(blackfriday.Run([]byte(input)))
 }
 
 var functions = template.FuncMap{
