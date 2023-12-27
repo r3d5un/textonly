@@ -21,3 +21,5 @@ services:
       POSTGRES_DB: blog
     volumes:
       - /home/r3d5un/Data/textonly-blog-data:/var/lib/postgresql/data
+    profiles:
+      - db
