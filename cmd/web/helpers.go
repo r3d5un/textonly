@@ -112,6 +112,18 @@ func (app *application) writeJSON(
 	return nil
 }
 
+func (app *application) readJSON(r *http.Request, data interface{}) error {
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	err := decoder.Decode(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (app *application) redirectToLatestPost(w http.ResponseWriter, r *http.Request) {
 	posts, err := app.models.BlogPosts.LastN(1)
 	if err != nil {

@@ -130,11 +130,12 @@ func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
 	return blogPosts, nil
 }
 
-func (m *BlogPostModel) Insert(bp *BlogPost) error {
+func (m *BlogPostModel) Insert(bp *BlogPost) (BlogPost, error) {
 	query := `INSERT INTO posts (
         title, lead, post
         )
-        VALUES ($1, $2, $3);`
+        VALUES ($1, $2, $3)
+        RETURNING id, last_update, created;`
 
 	args := []any{
 		bp.Title,
@@ -145,12 +146,14 @@ func (m *BlogPostModel) Insert(bp *BlogPost) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx, query, args...)
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+		&bp.ID, &bp.LastUpdate, &bp.Created,
+	)
 	if err != nil {
-		return err
+		return *bp, err
 	}
 
-	return nil
+	return *bp, nil
 }
 
 func (m *BlogPostModel) Update(bp *BlogPost) error {

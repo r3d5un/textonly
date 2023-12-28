@@ -29,6 +29,10 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/about", app.about)
 	router.HandlerFunc(http.MethodGet, "/feed.rss", app.feed)
 
+	// API
+	// TODO: Protect API endspoints
+	router.HandlerFunc(http.MethodPost, "/api/post", app.postBlogHandler)
+
 	standard := alice.New(app.recoverPanic, app.rateLimit, app.logRequest, secureHeaders)
 
 	return standard.Then(router)
