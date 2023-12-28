@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
-	"textonly.islandwind.me/internal/models"
+	"textonly.islandwind.me/internal/data"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {

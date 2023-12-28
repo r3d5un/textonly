@@ -9,7 +9,7 @@ import (
 	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"textonly.islandwind.me/internal/models"
+	"textonly.islandwind.me/internal/data"
 	"textonly.islandwind.me/internal/vcs"
 )
 

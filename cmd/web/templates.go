@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/russross/blackfriday/v2"
-	"textonly.islandwind.me/internal/models"
+	"textonly.islandwind.me/internal/data"
 	"textonly.islandwind.me/ui"
 )
 
