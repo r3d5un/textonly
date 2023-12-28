@@ -9,7 +9,7 @@ import (
 	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"textonly.islandwind.me/internal/models"
+	"textonly.islandwind.me/internal/data"
 	"textonly.islandwind.me/internal/vcs"
 )
 
@@ -19,9 +19,7 @@ var (
 
 type application struct {
 	logger        *slog.Logger
-	blogPosts     *models.BlogPostModel
-	sosials       *models.SocialModel
-	user          *models.UserModel
+	models        data.Models
 	templateCache map[string]*template.Template
 }
 
@@ -59,9 +57,7 @@ func main() {
 
 	app := &application{
 		logger:        logger,
-		blogPosts:     &models.BlogPostModel{DB: db},
-		sosials:       &models.SocialModel{DB: db},
-		user:          &models.UserModel{DB: db},
+		models:        data.NewModels(db),
 		templateCache: templateCache,
 	}
 

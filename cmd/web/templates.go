@@ -8,15 +8,15 @@ import (
 	"time"
 
 	"github.com/russross/blackfriday/v2"
-	"textonly.islandwind.me/internal/models"
+	"textonly.islandwind.me/internal/data"
 	"textonly.islandwind.me/ui"
 )
 
 type templateData struct {
-	BlogPost  *models.BlogPost
-	BlogPosts []*models.BlogPost
-	Socials   []*models.Social
-	User      *models.User
+	BlogPost  *data.BlogPost
+	BlogPosts []*data.BlogPost
+	Socials   []*data.Social
+	User      *data.User
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {

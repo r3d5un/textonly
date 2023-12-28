@@ -1,6 +1,7 @@
-package models
+package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"log/slog"
@@ -127,4 +128,57 @@ func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
 	}
 
 	return blogPosts, nil
+}
+
+func (m *BlogPostModel) Insert(bp *BlogPost) error {
+	query := `INSERT INTO posts (
+        title, lead, post
+        )
+        VALUES ($1, $2, $3);`
+
+	args := []any{
+		bp.Title,
+		bp.Lead,
+		bp.Post,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *BlogPostModel) Update(bp *BlogPost) error {
+	query := `UPDATE posts
+        SET title = $2, lead = $3, post = $4, last_update = NOW(), created = $5
+        WHERE id = $1
+    `
+
+	args := []any{
+		bp.ID,
+		bp.Title,
+		bp.Lead,
+		bp.Post,
+		bp.Created,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrNoRecord
+		default:
+			return err
+		}
+	}
+
+	return nil
 }

@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
-	"textonly.islandwind.me/internal/models"
+	"textonly.islandwind.me/internal/data"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -22,9 +22,9 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.logger.Info("querying blogpost", "id", id)
-	blogPost, err := app.blogPosts.Get(id)
+	blogPost, err := app.models.BlogPosts.Get(id)
 	if err != nil {
-		if errors.Is(err, models.ErrNoRecord) {
+		if errors.Is(err, data.ErrNoRecord) {
 			app.notFound(w)
 		} else {
 			app.serverError(w, err)
@@ -40,7 +40,7 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) posts(w http.ResponseWriter, r *http.Request) {
 	app.logger.Info("querying blogposts")
-	blogPosts, err := app.blogPosts.GetAll()
+	blogPosts, err := app.models.BlogPosts.GetAll()
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -54,7 +54,7 @@ func (app *application) posts(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) about(w http.ResponseWriter, r *http.Request) {
 	app.logger.Info("querying user data")
-	user, err := app.user.Get(1)
+	user, err := app.models.Users.Get(1)
 	if err != nil {
 		app.logger.Error("unable to query user data", "error", err)
 		app.serverError(w, err)
@@ -63,7 +63,7 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 	app.logger.Info("retrieved user data", "user", user)
 
 	app.logger.Info("querying social data")
-	socials, err := app.sosials.GetByUserID(user.ID)
+	socials, err := app.models.Socials.GetByUserID(user.ID)
 	if err != nil {
 		app.logger.Error("uanble to query social data", "error", err)
 		app.serverError(w, err)
@@ -79,7 +79,7 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) feed(w http.ResponseWriter, r *http.Request) {
 	app.logger.Info("querying blogposts")
-	blogPosts, err := app.blogPosts.GetAll()
+	blogPosts, err := app.models.BlogPosts.GetAll()
 	if err != nil {
 		app.logger.Error("unable to query blogposts", "error", err)
 		app.serverError(w, err)
