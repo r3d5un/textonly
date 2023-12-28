@@ -19,9 +19,7 @@ var (
 
 type application struct {
 	logger        *slog.Logger
-	blogPosts     *models.BlogPostModel
-	sosials       *models.SocialModel
-	user          *models.UserModel
+	models        models.Models
 	templateCache map[string]*template.Template
 }
 
@@ -59,9 +57,7 @@ func main() {
 
 	app := &application{
 		logger:        logger,
-		blogPosts:     &models.BlogPostModel{DB: db},
-		sosials:       &models.SocialModel{DB: db},
-		user:          &models.UserModel{DB: db},
+		models:        models.NewModels(db),
 		templateCache: templateCache,
 	}
 

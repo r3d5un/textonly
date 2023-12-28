@@ -113,7 +113,7 @@ func (app *application) writeJSON(
 }
 
 func (app *application) redirectToLatestPost(w http.ResponseWriter, r *http.Request) {
-	posts, err := app.blogPosts.LastN(1)
+	posts, err := app.models.BlogPosts.LastN(1)
 	if err != nil {
 		app.logger.Error("error occurred while redirecting", "error", err)
 		return
