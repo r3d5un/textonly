@@ -13,10 +13,10 @@ import (
 )
 
 type templateData struct {
-	BlogPost  *models.BlogPost
-	BlogPosts []*models.BlogPost
-	Socials   []*models.Social
-	User      *models.User
+	BlogPost  *data.BlogPost
+	BlogPosts []*data.BlogPost
+	Socials   []*data.Social
+	User      *data.User
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {

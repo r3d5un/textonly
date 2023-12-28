@@ -24,7 +24,7 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 	app.logger.Info("querying blogpost", "id", id)
 	blogPost, err := app.models.BlogPosts.Get(id)
 	if err != nil {
-		if errors.Is(err, models.ErrNoRecord) {
+		if errors.Is(err, data.ErrNoRecord) {
 			app.notFound(w)
 		} else {
 			app.serverError(w, err)
