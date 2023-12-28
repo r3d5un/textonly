@@ -20,7 +20,7 @@ CREATE TABLE public.posts (
 	title varchar(255) NOT NULL,
 	lead text NOT NULL,
 	post text NOT NULL,
-	last_update timestamp NOT NULL,
-	created timestamp NOT NULL,
+	last_update timestamp NOT NULL DEFAULT NOW(),
+	created timestamp NOT NULL DEFAULT NOW(),
 	CONSTRAINT posts_pkey PRIMARY KEY (id)
 );
