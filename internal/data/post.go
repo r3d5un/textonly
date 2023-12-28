@@ -9,12 +9,12 @@ import (
 )
 
 type BlogPost struct {
-	ID         int
-	Title      string
-	Lead       string
-	Post       string
-	LastUpdate time.Time
-	Created    time.Time
+	ID         int       `json:"id"`
+	Title      string    `json:"title"`
+	Lead       string    `json:"lead"`
+	Post       string    `json:"post"`
+	LastUpdate time.Time `json:"last_update"`
+	Created    time.Time `json:"created"`
 }
 
 type BlogPostModel struct {
