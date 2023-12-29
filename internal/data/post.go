@@ -158,7 +158,7 @@ func (m *BlogPostModel) Insert(bp *BlogPost) (BlogPost, error) {
 	return *bp, nil
 }
 
-func (m *BlogPostModel) Update(bp *BlogPost) error {
+func (m *BlogPostModel) Update(bp *BlogPost) (rowsAffected int64, err error) {
 	query := `UPDATE posts
         SET title = $2, lead = $3, post = $4, last_update = NOW(), created = $5
         WHERE id = $1
@@ -175,17 +175,25 @@ func (m *BlogPostModel) Update(bp *BlogPost) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx, query, args...)
+	result, err := m.DB.ExecContext(ctx, query, args...)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ErrNoRecord
+			return 0, ErrNoRecord
 		default:
-			return err
+			return 0, err
 		}
 	}
 
-	return nil
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if rowsAffected == 0 {
+		return 0, ErrRecordNotFound
+	}
+
+	return rowsAffected, nil
 }
 
 func (m *BlogPostModel) Delete(id int) (rowsAffected int64, err error) {

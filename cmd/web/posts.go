@@ -27,7 +27,7 @@ type BlogPostRequest struct {
 	Post  string `json:"post_content"`
 }
 
-type DeleteBlogResponse struct {
+type UpdateBlogResponse struct {
 	Message      string `json:"message,omitempty"`
 	ID           int    `json:"id,omitempty"`
 	RowsAffected int64  `json:"rows_affected,omitempty"`
@@ -172,7 +172,37 @@ func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	err = app.writeJSON(
-		w, http.StatusOK, DeleteBlogResponse{Message: "blog post deleted", RowsAffected: rowsAffected, ID: id}, nil,
+		w,
+		http.StatusOK,
+		UpdateBlogResponse{Message: "blog post deleted", RowsAffected: rowsAffected, ID: id},
+		nil,
+	)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) updateBlogHandler(w http.ResponseWriter, r *http.Request) {
+	var input data.BlogPost
+	err := app.readJSON(r, &input)
+	if err != nil {
+		slog.Error("unable to parse JSON request body", "error", err, "request", r.Body)
+		app.badRequestResponse(w, r, "unable to parse JSON request body")
+		return
+	}
+
+	rowsAffected, err := app.models.BlogPosts.Update(&input)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(
+		w,
+		http.StatusOK,
+		UpdateBlogResponse{Message: "blog post updated", RowsAffected: rowsAffected, ID: input.ID},
+		nil,
 	)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
