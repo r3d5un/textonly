@@ -7,6 +7,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"textonly.islandwind.me/internal/data"
+	"textonly.islandwind.me/internal/validator"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -39,8 +40,18 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) posts(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		data.Filters `json:"filters,omitempty"`
+	}
+
+	v := validator.New()
+	qs := r.URL.Query()
+
+	input.Filters.Page = app.readQueryInt(qs, "page", 1, v)
+	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
+
 	app.logger.Info("querying blogposts")
-	blogPosts, err := app.models.BlogPosts.GetAll()
+	blogPosts, _, err := app.models.BlogPosts.GetAll(input.Filters)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -78,8 +89,18 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) feed(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		data.Filters `json:"filters,omitempty"`
+	}
+
+	v := validator.New()
+	qs := r.URL.Query()
+
+	input.Filters.Page = app.readQueryInt(qs, "page", 1, v)
+	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
+
 	app.logger.Info("querying blogposts")
-	blogPosts, err := app.models.BlogPosts.GetAll()
+	blogPosts, _, err := app.models.BlogPosts.GetAll(input.Filters)
 	if err != nil {
 		app.logger.Error("unable to query blogposts", "error", err)
 		app.serverError(w, err)

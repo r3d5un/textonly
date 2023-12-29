@@ -51,7 +51,7 @@ func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
 	return blogPost, nil
 }
 
-func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
+func (m *BlogPostModel) GetAll(filters Filters) ([]*BlogPost, Metadata, error) {
 	stmt := `
         SELECT id, title, lead, post, last_update, created
         FROM posts
@@ -61,10 +61,11 @@ func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		slog.Error("unable to query blogposts", "query", stmt, "error", err)
-		return nil, err
+		return nil, Metadata{}, err
 	}
 	defer rows.Close()
 
+	totalRecords := 0
 	blogPosts := []*BlogPost{}
 	for rows.Next() {
 		blogPost := &BlogPost{}
@@ -78,16 +79,17 @@ func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
 		)
 		if err != nil {
 			slog.Error("unable to query blogposts", "query", stmt, "error", err)
-			return nil, err
+			return nil, Metadata{}, err
 		}
 		blogPosts = append(blogPosts, blogPost)
 	}
 	if err = rows.Err(); err != nil {
 		slog.Error("unable to query blogposts", "query", stmt, "error", err)
-		return nil, err
+		return nil, Metadata{}, err
 	}
+	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize, filters.OrderBy)
 
-	return blogPosts, nil
+	return blogPosts, metadata, nil
 }
 
 func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
@@ -156,7 +158,7 @@ func (m *BlogPostModel) Insert(bp *BlogPost) (BlogPost, error) {
 	return *bp, nil
 }
 
-func (m *BlogPostModel) Update(bp *BlogPost) error {
+func (m *BlogPostModel) Update(bp *BlogPost) (rowsAffected int64, err error) {
 	query := `UPDATE posts
         SET title = $2, lead = $3, post = $4, last_update = NOW(), created = $5
         WHERE id = $1
@@ -173,15 +175,45 @@ func (m *BlogPostModel) Update(bp *BlogPost) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx, query, args...)
+	result, err := m.DB.ExecContext(ctx, query, args...)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ErrNoRecord
+			return 0, ErrNoRecord
 		default:
-			return err
+			return 0, err
 		}
 	}
 
-	return nil
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if rowsAffected == 0 {
+		return 0, ErrRecordNotFound
+	}
+
+	return rowsAffected, nil
+}
+
+func (m *BlogPostModel) Delete(id int) (rowsAffected int64, err error) {
+	query := "DELETE FROM posts WHERE id = $1;"
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if rowsAffected == 0 {
+		return 0, ErrRecordNotFound
+	}
+
+	return rowsAffected, nil
 }
