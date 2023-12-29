@@ -5,8 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime/debug"
+	"strconv"
+	"time"
+
+	"textonly.islandwind.me/internal/validator"
 )
 
 func (app *application) serverError(w http.ResponseWriter, err error) {
@@ -140,4 +145,65 @@ func (app *application) redirectToLatestPost(w http.ResponseWriter, r *http.Requ
 
 	app.logger.Info("redirecting to last post", "url", urlString)
 	http.Redirect(w, r, urlString, http.StatusMovedPermanently)
+}
+
+func (app *application) readQueryString(
+	qs url.Values,
+	key string,
+	defaultValue string,
+) string {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue
+	}
+
+	return s
+}
+
+func (app *application) readQueryInt(
+	qs url.Values,
+	key string,
+	defaultValue int,
+	v *validator.Validator,
+) int {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue
+	}
+
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		v.AddError(key, "must be an integer value")
+		return defaultValue
+	}
+
+	return i
+}
+
+func (app *application) readQueryDate(
+	qs url.Values,
+	key string,
+	v *validator.Validator,
+) *time.Time {
+	s := qs.Get(key)
+	if s == "" {
+		return nil
+	}
+	date, err := time.Parse("2006-01-02T00:00:00", s)
+	if err != nil {
+		v.AddError(key, "not a valid date format ('2006-01-02T00:00:00Z')")
+		return nil
+	}
+
+	return &date
+}
+
+func (app *application) failedValidationResponse(
+	w http.ResponseWriter,
+	r *http.Request,
+	errors map[string]string,
+) {
+	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
 }

@@ -51,7 +51,7 @@ func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
 	return blogPost, nil
 }
 
-func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
+func (m *BlogPostModel) GetAll(filters Filters) ([]*BlogPost, Metadata, error) {
 	stmt := `
         SELECT id, title, lead, post, last_update, created
         FROM posts
@@ -61,10 +61,11 @@ func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		slog.Error("unable to query blogposts", "query", stmt, "error", err)
-		return nil, err
+		return nil, Metadata{}, err
 	}
 	defer rows.Close()
 
+	totalRecords := 0
 	blogPosts := []*BlogPost{}
 	for rows.Next() {
 		blogPost := &BlogPost{}
@@ -78,16 +79,17 @@ func (m *BlogPostModel) GetAll() ([]*BlogPost, error) {
 		)
 		if err != nil {
 			slog.Error("unable to query blogposts", "query", stmt, "error", err)
-			return nil, err
+			return nil, Metadata{}, err
 		}
 		blogPosts = append(blogPosts, blogPost)
 	}
 	if err = rows.Err(); err != nil {
 		slog.Error("unable to query blogposts", "query", stmt, "error", err)
-		return nil, err
+		return nil, Metadata{}, err
 	}
+	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize, filters.OrderBy)
 
-	return blogPosts, nil
+	return blogPosts, metadata, nil
 }
 
 func (m *BlogPostModel) LastN(limit int) ([]*BlogPost, error) {
