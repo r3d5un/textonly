@@ -34,6 +34,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/api/post", app.listBlogHandler)
 	router.HandlerFunc(http.MethodGet, "/api/post/:id", app.getBlogHandler)
 	router.HandlerFunc(http.MethodPost, "/api/post", app.postBlogHandler)
+	router.HandlerFunc(http.MethodDelete, "/api/post/:id", app.deleteBlogHandler)
 
 	standard := alice.New(app.recoverPanic, app.rateLimit, app.logRequest, secureHeaders)
 

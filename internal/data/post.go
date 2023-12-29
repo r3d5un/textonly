@@ -187,3 +187,25 @@ func (m *BlogPostModel) Update(bp *BlogPost) error {
 
 	return nil
 }
+
+func (m *BlogPostModel) Delete(id int) (rowsAffected int64, err error) {
+	query := "DELETE FROM posts WHERE id = $1;"
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if rowsAffected == 0 {
+		return 0, ErrRecordNotFound
+	}
+
+	return rowsAffected, nil
+}

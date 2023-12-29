@@ -27,6 +27,12 @@ type BlogPostRequest struct {
 	Post  string `json:"post_content"`
 }
 
+type DeleteBlogResponse struct {
+	Message      string `json:"message,omitempty"`
+	ID           int    `json:"id,omitempty"`
+	RowsAffected int64  `json:"rows_affected,omitempty"`
+}
+
 func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing blog ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
@@ -134,6 +140,41 @@ func (app *application) postBlogHandler(w http.ResponseWriter, r *http.Request) 
 	err = app.writeJSON(w, http.StatusCreated, bp, nil)
 	if err != nil {
 		slog.Error("unable to write response", "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request) {
+	slog.Info("parsing blog ID from path", "key", "id", "path", r.URL.Path)
+	params := httprouter.ParamsFromContext(r.Context())
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil {
+		slog.Error("unable to get ID parameter from URL string", "params", params, "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	if id < 0 {
+		slog.Info("invalid ID", "id", id)
+		app.notFound(w)
+		return
+	}
+
+	rowsAffected, err := app.models.BlogPosts.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(
+		w, http.StatusOK, DeleteBlogResponse{Message: "blog post deleted", RowsAffected: rowsAffected, ID: id}, nil,
+	)
+	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
