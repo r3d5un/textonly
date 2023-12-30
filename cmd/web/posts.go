@@ -55,9 +55,11 @@ func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, data.ErrRecordNotFound):
 			slog.Info("no records found", "id", id)
 			app.notFoundResponse(w, r)
+			return
 		default:
 			slog.Error("an error occurred during retrieval", "error", err)
 			app.serverErrorResponse(w, r, err)
+			return
 		}
 	}
 
@@ -167,10 +169,11 @@ func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.notFoundResponse(w, r)
+			return
 		default:
 			app.serverErrorResponse(w, r, err)
+			return
 		}
-		return
 	}
 
 	err = app.writeJSON(

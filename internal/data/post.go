@@ -22,6 +22,9 @@ type BlogPostModel struct {
 }
 
 func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
 	stmt := `
         SELECT id, title, lead, post, last_update, created
         FROM posts
