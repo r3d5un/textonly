@@ -1,0 +1,5 @@
+# NOTE: These are only default values for the web application.
+# It is expected that these values will be overriden using
+# environment variables in live environments.
+dsn: "postgresql://postgres:postgres@database:5432?database=blog"
+url: ":4000"
