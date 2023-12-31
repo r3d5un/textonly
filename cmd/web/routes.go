@@ -43,8 +43,8 @@ func (app *application) routes() http.Handler {
 	// TODO: deleteSocial
 	// TODO: updateSocial
 
-	// TODO: getUser
-	// TODO: updateSocial
+	router.HandlerFunc(http.MethodGet, "/api/user/:id", app.getUserHandler)
+	router.HandlerFunc(http.MethodPut, "/api/user", app.updateUserHandler)
 
 	standard := alice.New(app.recoverPanic, app.rateLimit, app.logRequest, secureHeaders)
 

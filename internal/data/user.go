@@ -1,16 +1,18 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"log/slog"
+	"time"
 )
 
 type User struct {
-	ID      int
-	Name    string
-	Summary string
-	Content string
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	Summary string `json:"summary"`
+	Content string `json:"content"`
 }
 
 type UserModel struct {
@@ -18,6 +20,10 @@ type UserModel struct {
 }
 
 func (m *UserModel) Get(id int) (*User, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
 	stmt := `
         SELECT user_id, name, summary, content
         FROM users
@@ -39,4 +45,40 @@ func (m *UserModel) Get(id int) (*User, error) {
 		}
 	}
 	return user, nil
+}
+
+func (m *UserModel) Update(u *User) (rowsAffected int64, err error) {
+	query := `UPDATE users
+    SET name = $2, summary = $3, content = $4
+    WHERE user_id = $1;`
+
+	args := []any{
+		u.ID,
+		u.Name,
+		u.Summary,
+		u.Content,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return 0, ErrNoRecord
+		default:
+			return 0, err
+		}
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if rowsAffected == 0 {
+		return 0, ErrRecordNotFound
+	}
+
+	return rowsAffected, nil
 }
