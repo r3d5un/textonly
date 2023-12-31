@@ -18,6 +18,10 @@ type UserModel struct {
 }
 
 func (m *UserModel) Get(id int) (*User, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
 	stmt := `
         SELECT user_id, name, summary, content
         FROM users
