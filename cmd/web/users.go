@@ -15,6 +15,11 @@ type UserPostResponse struct {
 	Data     data.User     `json:"data"`
 }
 
+type UpdateUserResponse struct {
+	Message      string `json:"message,omitempty"`
+	RowsAffected int64  `json:"rows_affected,omitempty"`
+}
+
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing user ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
@@ -57,4 +62,28 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+}
+
+func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
+	var input data.User
+	err := app.readJSON(r, &input)
+	if err != nil {
+		slog.Error("unable to parse JSON request body", "error", err, "request", r.Body)
+		app.badRequestResponse(w, r, "unable to parse JSON request body")
+		return
+	}
+
+	rowsAffected, err := app.models.Users.Update(&input)
+	if err != nil {
+		slog.Error("unable to update user", "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(
+		w,
+		http.StatusOK,
+		UpdateUserResponse{Message: "user updated", RowsAffected: rowsAffected},
+		nil,
+	)
 }
