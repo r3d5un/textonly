@@ -77,7 +77,6 @@ func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		data.Filters `json:"filters,omitempty"`
@@ -118,7 +117,6 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 }
-
 
 func (app *application) postBlogHandler(w http.ResponseWriter, r *http.Request) {
 	var blogPost BlogPostRequest
