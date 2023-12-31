@@ -14,6 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build ./cmd/web
 FROM alpine:latest
 WORKDIR /app
 COPY --from=base /app/web .
+COPY ./cmd/web/config/config.yaml ./config.yaml
 
 EXPOSE 8080
 CMD [ "./web" ]

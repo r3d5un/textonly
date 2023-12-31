@@ -9,6 +9,7 @@ import (
 	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"textonly.islandwind.me/cmd/web/config"
 	"textonly.islandwind.me/internal/data"
 	"textonly.islandwind.me/internal/vcs"
 )
@@ -21,6 +22,7 @@ type application struct {
 	logger        *slog.Logger
 	models        data.Models
 	templateCache map[string]*template.Template
+	config        *config.Config
 }
 
 func main() {
@@ -35,11 +37,15 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	addr := GetURL()
-	dsn := GetDBDSN()
+	slog.Info("loading configuration")
+	config, err := config.New()
+	if err != nil {
+		slog.Error("unable to load configuration", "error", err)
+	}
+	slog.Info("configuration loaded", "environment", config.App.ENV)
 
 	logger.Info("opening database connection pool...")
-	db, err := openDB(dsn)
+	db, err := openDB(config.Database.DSN)
 	if err != nil {
 		logger.Error("unable to open database connection pool", "error", err)
 		os.Exit(1)
@@ -59,9 +65,10 @@ func main() {
 		logger:        logger,
 		models:        data.NewModels(db),
 		templateCache: templateCache,
+		config:        config,
 	}
 
-	err = app.serve(addr)
+	err = app.serve(app.config.App.URL)
 	if err != nil {
 		logger.Error("an error occurred", "error", err)
 		os.Exit(1)
