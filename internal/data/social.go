@@ -2,18 +2,51 @@ package data
 
 import (
 	"database/sql"
+	"errors"
 	"log/slog"
 )
 
 type Social struct {
-	ID             int
-	UserID         int
-	SocialPlatform string
-	Link           string
+	ID             int    `json:"id"`
+	UserID         int    `json:"user_id"`
+	SocialPlatform string `json:"social_platform"`
+	Link           string `json:"link"`
 }
 
 type SocialModel struct {
 	DB *sql.DB
+}
+
+func (m *SocialModel) Get(id int) (*Social, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	stmt := `SELECT id, user_id, social_platform, link
+        FROM socials
+        WHERE id = $1;`
+
+	slog.Info("querying social data", "query", stmt, "id", id)
+	row := m.DB.QueryRow(stmt, id)
+	s := &Social{}
+
+	err := row.Scan(
+		&s.ID,
+		&s.UserID,
+		&s.SocialPlatform,
+		&s.Link,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			slog.Info("no records found", "query", stmt, "id", id)
+			return nil, ErrRecordNotFound
+		} else {
+			slog.Info("unable to query social", "query", stmt, "id", id)
+			return nil, err
+		}
+	}
+
+	return s, nil
 }
 
 func (m *SocialModel) GetByUserID(id int) ([]*Social, error) {
