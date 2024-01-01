@@ -8,11 +8,17 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"textonly.islandwind.me/internal/data"
+	"textonly.islandwind.me/internal/validator"
 )
 
 type SocialResponse struct {
 	Metadata data.Metadata `json:"metadata"`
 	Data     data.Social   `json:"data"`
+}
+
+type SocialListResponse struct {
+	Metadata data.Metadata  `json:"metadata"`
+	Data     []*data.Social `json:"data"`
 }
 
 func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,6 +60,43 @@ func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request)
 	)
 	if err != nil {
 		slog.Error("unable to write response", "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		data.Filters `json:"filters,omitempty"`
+	}
+
+	v := validator.New()
+
+	qs := r.URL.Query()
+
+	input.Filters.ID = app.readQueryInt(qs, "id", 0, v)
+	input.Filters.UserID = app.readQueryInt(qs, "user_id", 0, v)
+
+	input.Filters.Page = app.readQueryInt(qs, "page", 1, v)
+	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
+
+	if data.ValidateFilters(v, input.Filters); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	ss, metadata, err := app.models.Socials.GetAll(input.Filters)
+	if err != nil {
+		slog.Error("unable to get social data", "error", err, "input", input)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(
+		w, http.StatusOK, SocialListResponse{Metadata: metadata, Data: ss}, nil,
+	)
+	if err != nil {
+		slog.Error("error writing response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}

@@ -1,9 +1,11 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"log/slog"
+	"time"
 )
 
 type Social struct {
@@ -84,4 +86,48 @@ func (m *SocialModel) GetByUserID(id int) ([]*Social, error) {
 	}
 
 	return socials, nil
+}
+
+func (m *SocialModel) GetAll(filters Filters) ([]*Social, Metadata, error) {
+	stmt := `SELECT COUNT(*) OVER(), id, user_id, social_platform, link
+    FROM socials
+    ORDER BY id DESC;`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	slog.Info("querying social data", "query", stmt, "filters", filters)
+	rows, err := m.DB.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, Metadata{}, err
+	}
+	defer rows.Close()
+
+	totalRecords := 0
+	socials := []*Social{}
+
+	for rows.Next() {
+		social := &Social{}
+		err = rows.Scan(
+			&totalRecords,
+			&social.ID,
+			&social.UserID,
+			&social.SocialPlatform,
+			&social.Link,
+		)
+		if err != nil {
+			slog.Error("unable to query socials", "query", stmt, "error", err)
+			return nil, Metadata{}, err
+		}
+		socials = append(socials, social)
+	}
+
+	if err = rows.Err(); err != nil {
+		slog.Error("unable to query socials", "query", stmt, "error", err)
+		return nil, Metadata{}, err
+	}
+
+	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize, filters.OrderBy)
+
+	return socials, metadata, nil
 }
