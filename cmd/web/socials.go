@@ -169,3 +169,42 @@ func (app *application) putSocialHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 }
+
+func (app *application) deleteSocialHandler(w http.ResponseWriter, r *http.Request) {
+	slog.Info("parsing social ID from path", "key", "id", "path", r.URL.Path)
+	params := httprouter.ParamsFromContext(r.Context())
+	id, err := strconv.Atoi(params.ByName("id"))
+	if err != nil {
+		slog.Error("unable to get ID parameter from URL string", "params", params, "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	if id < 0 {
+		slog.Info("invalid ID", "id", id)
+		app.notFound(w)
+		return
+	}
+
+	rowsAffected, err := app.models.Socials.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+			return
+		default:
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
+
+	err = app.writeJSON(
+		w,
+		http.StatusOK,
+		UpdateSocialResponse{Message: "social info deleted", RowsAffected: rowsAffected, ID: id},
+		nil,
+	)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
