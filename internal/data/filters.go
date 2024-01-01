@@ -21,6 +21,7 @@ type Filters struct {
 	Page            int        `json:"page,omitempty"`
 	PageSize        int        `json:"page_size,omitempty"`
 	ID              int        `json:"id,omitempty"`
+	UserID          int        `json:"user_id,omitempty"`
 	Title           string     `json:"title,omitempty"`
 	Lead            string     `json:"lead,omitempty"`
 	Post            string     `json:"post,omitempty"`
@@ -39,6 +40,14 @@ func ValidateFilters(v *validator.Validator, f Filters) {
 
 	orderByParam, isPermitted := validator.PermittedValues(f.OrderBy, f.OrderBySafeList)
 	v.Check(isPermitted, orderByParam, "invalid order_by parameter")
+}
+
+func (f Filters) limit() int {
+	return f.PageSize
+}
+
+func (f Filters) offset() int {
+	return (f.Page - 1) * f.PageSize
 }
 
 func calculateMetadata(totalRecords, page, pageSize int, orderBySlice []string) Metadata {
