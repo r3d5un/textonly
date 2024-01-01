@@ -153,3 +153,39 @@ func (m *SocialModel) Insert(s *Social) (Social, error) {
 
 	return *s, err
 }
+
+func (m *SocialModel) Update(s *Social) (rowsAffected int64, err error) {
+	query := `UPDATE socials
+    SET user_id = $2, social_platform = $3, link = $4
+    WHERE id = $1;`
+
+	args := []any{
+		s.ID,
+		s.UserID,
+		s.SocialPlatform,
+		s.Link,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return 0, ErrRecordNotFound
+		default:
+			return 0, err
+		}
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if rowsAffected == 0 {
+		return 0, ErrRecordNotFound
+	}
+
+	return rowsAffected, nil
+}

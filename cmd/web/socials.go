@@ -27,6 +27,12 @@ type SocialPostRequest struct {
 	Link           string `json:"link"`
 }
 
+type UpdateSocialResponse struct {
+	Message      string `json:"message,omitempty"`
+	ID           int    `json:"id,omitempty"`
+	RowsAffected int64  `json:"rows_affected,omitempty"`
+}
+
 func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing social ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
@@ -132,6 +138,33 @@ func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request
 	err = app.writeJSON(w, http.StatusCreated, queryResponse, nil)
 	if err != nil {
 		slog.Error("unable to write response", "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) putSocialHandler(w http.ResponseWriter, r *http.Request) {
+	var input data.Social
+	err := app.readJSON(r, &input)
+	if err != nil {
+		slog.Error("unable to parse JSON request body", "error", err, "request", r.Body)
+		app.badRequestResponse(w, r, "uanble to parse JSON request body")
+		return
+	}
+
+	rowsAffected, err := app.models.Socials.Update(&input)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(
+		w,
+		http.StatusOK,
+		UpdateSocialResponse{Message: "social info updated", RowsAffected: rowsAffected, ID: input.ID},
+		nil,
+	)
+	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
