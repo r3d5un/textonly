@@ -42,6 +42,14 @@ func ValidateFilters(v *validator.Validator, f Filters) {
 	v.Check(isPermitted, orderByParam, "invalid order_by parameter")
 }
 
+func (f Filters) limit() int {
+	return f.PageSize
+}
+
+func (f Filters) offset() int {
+	return (f.Page - 1) * f.PageSize
+}
+
 func calculateMetadata(totalRecords, page, pageSize int, orderBySlice []string) Metadata {
 	if totalRecords == 0 {
 		return Metadata{}
