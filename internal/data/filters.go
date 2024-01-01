@@ -21,6 +21,7 @@ type Filters struct {
 	Page            int        `json:"page,omitempty"`
 	PageSize        int        `json:"page_size,omitempty"`
 	ID              int        `json:"id,omitempty"`
+	UserID          int        `json:"user_id,omitempty"`
 	Title           string     `json:"title,omitempty"`
 	Lead            string     `json:"lead,omitempty"`
 	Post            string     `json:"post,omitempty"`
