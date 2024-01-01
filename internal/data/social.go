@@ -131,3 +131,25 @@ func (m *SocialModel) GetAll(filters Filters) ([]*Social, Metadata, error) {
 
 	return socials, metadata, nil
 }
+
+func (m *SocialModel) Insert(s *Social) (Social, error) {
+	query := `INSERT INTO socials (
+        user_id, social_platform, link
+    )
+    VALUES ($1, $2, $3)
+    RETURNING id, user_id, social_platform, link;`
+
+	args := []any{s.UserID, s.SocialPlatform, s.Link}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+		&s.UserID, &s.SocialPlatform, &s.Link,
+	)
+	if err != nil {
+		return *s, err
+	}
+
+	return *s, err
+}

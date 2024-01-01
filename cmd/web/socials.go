@@ -21,6 +21,12 @@ type SocialListResponse struct {
 	Data     []*data.Social `json:"data"`
 }
 
+type SocialPostRequest struct {
+	UserID         int    `json:"user_id"`
+	SocialPlatform string `json:"social_platform"`
+	Link           string `json:"link"`
+}
+
 func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing social ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
@@ -97,6 +103,35 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 	)
 	if err != nil {
 		slog.Error("error writing response", "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request) {
+	var s SocialPostRequest
+
+	err := app.readJSON(r, &s)
+	if err != nil {
+		slog.Error("unable to parse JSON request body", "error", err)
+		app.badRequestResponse(w, r, "unable to parse JSON request body")
+		return
+	}
+
+	queryResponse, err := app.models.Socials.Insert(&data.Social{
+		UserID:         s.UserID,
+		SocialPlatform: s.SocialPlatform,
+		Link:           s.Link,
+	})
+	if err != nil {
+		slog.Error("unable to create social data", "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusCreated, queryResponse, nil)
+	if err != nil {
+		slog.Error("unable to write response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}

@@ -39,7 +39,7 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/api/social", app.listSocialHandler)
 	router.HandlerFunc(http.MethodGet, "/api/social/:id", app.getSocialHandler)
-	// TODO: postSocial
+	router.HandlerFunc(http.MethodPost, "/api/social", app.postSocialHandler)
 	// TODO: deleteSocial
 	// TODO: updateSocial
 
