@@ -56,12 +56,15 @@ func (m *BlogPostModel) Get(id int) (*BlogPost, error) {
 
 func (m *BlogPostModel) GetAll(filters Filters) ([]*BlogPost, Metadata, error) {
 	stmt := `
-        SELECT id, title, lead, post, last_update, created
+        SELECT COUNT(*) OVER(), id, title, lead, post, last_update, created
         FROM posts
         ORDER BY id DESC;`
 
-	slog.Info("querying blogposts", "query", stmt)
-	rows, err := m.DB.Query(stmt)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	slog.Info("querying blogposts", "query", stmt, "filters", filters)
+	rows, err := m.DB.QueryContext(ctx, stmt)
 	if err != nil {
 		slog.Error("unable to query blogposts", "query", stmt, "error", err)
 		return nil, Metadata{}, err
@@ -73,6 +76,7 @@ func (m *BlogPostModel) GetAll(filters Filters) ([]*BlogPost, Metadata, error) {
 	for rows.Next() {
 		blogPost := &BlogPost{}
 		err = rows.Scan(
+			&totalRecords,
 			&blogPost.ID,
 			&blogPost.Title,
 			&blogPost.Lead,
