@@ -2,7 +2,7 @@
 
 Textonly is a simple blog app meant to serve as a reference web application written in Go, as well as my personal blog, which you can find [here](https://islandwind.me/).
 
-The goal behind this project is to have a place where I can experiment with Go and other technologies. As such, the design is focused in exactly on what I want and need. Shortcuts have been made. Parts are under- and over-engineered, often at the same time. Other parts are just plain *bad*.
+The goal behind this project is to have a place where I can experiment with Go and other technologies. As such, the design is focused in exactly on what I want and need. Shortcuts have been made. Parts are under- and over-engineered, often at the same time. Other parts are just plain _bad_.
 
 If you intend to use this project as a reference, make sure the design fits your problem and project.
 
@@ -18,7 +18,7 @@ I wanted an excuse to create a CLI tool, and have therefore limited the WebUI to
 - [x] Web application configuration
 - [x] API endpoints
 - [ ] API filters and ordering
-- [ ] Secure API endpoints
+- [x] Secure API endpoints
 - [ ] CLI
 - [x] Dockerfile
 - [ ] Documentation
