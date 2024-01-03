@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/subtle"
 	"fmt"
 	"net"
 	"net/http"
@@ -100,6 +101,21 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 		}
 
 		mu.Unlock()
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) basicAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+
+		if !ok || subtle.ConstantTimeCompare([]byte(user), []byte(app.config.App.User)) != 1 ||
+			subtle.ConstantTimeCompare([]byte(pass), []byte(app.config.App.Password)) != 1 {
+			w.Header().Set("WWW-Authenticate", `Basic realm="`+app.config.App.Realm+`"`)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		next.ServeHTTP(w, r)
 	})

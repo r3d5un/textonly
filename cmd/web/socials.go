@@ -161,7 +161,11 @@ func (app *application) putSocialHandler(w http.ResponseWriter, r *http.Request)
 	err = app.writeJSON(
 		w,
 		http.StatusOK,
-		UpdateSocialResponse{Message: "social info updated", RowsAffected: rowsAffected, ID: input.ID},
+		UpdateSocialResponse{
+			Message:      "social info updated",
+			RowsAffected: rowsAffected,
+			ID:           input.ID,
+		},
 		nil,
 	)
 	if err != nil {

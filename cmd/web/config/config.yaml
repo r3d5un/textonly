@@ -4,5 +4,8 @@
 app:
   env: "development"
   url: ":4000"
+  user: "admin"
+  password: "password"
+  realm: "realm"
 database:
   dsn: "postgresql://postgres:postgres@database:5432?database=blog"
