@@ -15,6 +15,9 @@ func (app *application) routes() http.Handler {
 		app.notFound(w)
 	})
 
+	// for routes that require authentication
+	protected := alice.New(app.basicAuth)
+
 	fileServer := http.FileServer(http.FS(ui.Files))
 	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
@@ -33,18 +36,22 @@ func (app *application) routes() http.Handler {
 	// TODO: Protect API endspoints
 	router.HandlerFunc(http.MethodGet, "/api/post", app.listBlogHandler)
 	router.HandlerFunc(http.MethodGet, "/api/post/:id", app.getBlogHandler)
-	router.HandlerFunc(http.MethodPost, "/api/post", app.postBlogHandler)
-	router.HandlerFunc(http.MethodDelete, "/api/post/:id", app.deleteBlogHandler)
-	router.HandlerFunc(http.MethodPut, "/api/post", app.updateBlogHandler)
+	router.Handler(http.MethodPost, "/api/post", protected.ThenFunc(app.postBlogHandler))
+	router.Handler(http.MethodDelete, "/api/post/:id", protected.ThenFunc(app.deleteBlogHandler))
+	router.Handler(http.MethodPut, "/api/post", protected.ThenFunc(app.updateBlogHandler))
 
 	router.HandlerFunc(http.MethodGet, "/api/social", app.listSocialHandler)
 	router.HandlerFunc(http.MethodGet, "/api/social/:id", app.getSocialHandler)
-	router.HandlerFunc(http.MethodPost, "/api/social", app.postSocialHandler)
-	router.HandlerFunc(http.MethodDelete, "/api/social/:id", app.deleteSocialHandler)
-	router.HandlerFunc(http.MethodPut, "/api/social", app.putSocialHandler)
+	router.Handler(http.MethodPost, "/api/social", protected.ThenFunc(app.postSocialHandler))
+	router.Handler(
+		http.MethodDelete,
+		"/api/social/:id",
+		protected.ThenFunc(app.deleteSocialHandler),
+	)
+	router.Handler(http.MethodPut, "/api/social", protected.ThenFunc(app.putSocialHandler))
 
 	router.HandlerFunc(http.MethodGet, "/api/user/:id", app.getUserHandler)
-	router.HandlerFunc(http.MethodPut, "/api/user", app.updateUserHandler)
+	router.Handler(http.MethodPut, "/api/user", protected.ThenFunc(app.updateUserHandler))
 
 	standard := alice.New(app.recoverPanic, app.rateLimit, app.logRequest, secureHeaders)
 
