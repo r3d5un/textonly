@@ -86,4 +86,9 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		UpdateUserResponse{Message: "user updated", RowsAffected: rowsAffected},
 		nil,
 	)
+	if err != nil {
+		slog.Error("unable to write response", "error", err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }
