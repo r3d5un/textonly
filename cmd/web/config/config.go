@@ -16,8 +16,11 @@ type DatabaseConfig struct {
 }
 
 type AppConfig struct {
-	URL string `json:"url"`
-	ENV string `json:"env"`
+	URL      string `json:"url"`
+	ENV      string `json:"env"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Realm    string `json:"realm"`
 }
 
 func New() (*Config, error) {
@@ -43,6 +46,19 @@ func New() (*Config, error) {
 		return nil, err
 	}
 	err = viper.BindEnv("app.env", "ENV")
+	if err != nil {
+		return nil, err
+	}
+
+	err = viper.BindEnv("app.user", "USER")
+	if err != nil {
+		return nil, err
+	}
+	err = viper.BindEnv("app.password", "PASSWORD")
+	if err != nil {
+		return nil, err
+	}
+	err = viper.BindEnv("app.password", "REALM")
 	if err != nil {
 		return nil, err
 	}
