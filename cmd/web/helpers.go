@@ -8,7 +8,9 @@ import (
 	"net/url"
 	"os"
 	"runtime/debug"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"textonly.islandwind.me/internal/validator"
@@ -206,4 +208,31 @@ func (app *application) failedValidationResponse(
 	errors map[string]string,
 ) {
 	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+}
+
+func (app *application) readQueryCommaSeperatedString(
+	qs url.Values,
+	key string,
+	defaultValue string,
+) []string {
+	s := qs.Get(key)
+
+	if s == "" {
+		return []string{defaultValue}
+	}
+
+	splitValues := strings.Split(s, ",")
+
+	var seen []string
+	var values []string
+	for _, val := range splitValues {
+		trimmedVal := strings.TrimSpace(val)
+		normalizedVal := strings.TrimPrefix(trimmedVal, "-")
+		if trimmedVal != "" && !slices.Contains(seen, normalizedVal) {
+			seen = append(seen, normalizedVal)
+			values = append(values, trimmedVal)
+		}
+	}
+
+	return values
 }

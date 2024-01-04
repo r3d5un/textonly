@@ -96,6 +96,12 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 	input.Filters.Page = app.readQueryInt(qs, "page", 1, v)
 	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
 
+	input.Filters.OrderBy = app.readQueryCommaSeperatedString(qs, "order_by", "-last_update")
+	input.Filters.OrderBySafeList = []string{
+		"lead", "title", "post", "created", "last_update",
+		"-lead", "-title", "-post", "-created", "-last_update",
+	}
+
 	if data.ValidateFilters(v, input.Filters); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
