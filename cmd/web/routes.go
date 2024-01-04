@@ -33,7 +33,6 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/feed.rss", app.feed)
 
 	// API
-	// TODO: Protect API endspoints
 	router.HandlerFunc(http.MethodGet, "/api/post", app.listBlogHandler)
 	router.HandlerFunc(http.MethodGet, "/api/post/:id", app.getBlogHandler)
 	router.Handler(http.MethodPost, "/api/post", protected.ThenFunc(app.postBlogHandler))
