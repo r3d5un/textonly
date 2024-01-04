@@ -22,3 +22,4 @@ I wanted an excuse to create a CLI tool, and have therefore limited the WebUI to
 - [ ] CLI
 - [x] Dockerfile
 - [ ] Documentation
+- [ ] Swagger

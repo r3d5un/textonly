@@ -58,13 +58,19 @@ func (m *BlogPostModel) GetAll(filters Filters) ([]*BlogPost, Metadata, error) {
 	stmt := `
         SELECT COUNT(*) OVER(), id, title, lead, post, last_update, created
         FROM posts
-        ORDER BY id DESC;`
+        ORDER BY id DESC
+        LIMIT $1 OFFSET $2;`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	slog.Info("querying blogposts", "query", stmt, "filters", filters)
-	rows, err := m.DB.QueryContext(ctx, stmt)
+	rows, err := m.DB.QueryContext(
+		ctx,
+		stmt,
+		filters.limit(),
+		filters.offset(),
+	)
 	if err != nil {
 		slog.Error("unable to query blogposts", "query", stmt, "error", err)
 		return nil, Metadata{}, err
