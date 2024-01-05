@@ -184,6 +184,24 @@ func (app *application) readQueryInt(
 	return i
 }
 
+func (app *application) readQueryParamToIntPtr(
+	qs url.Values,
+	key string,
+	v *validator.Validator,
+) *int {
+	s := qs.Get(key)
+
+	if s == "" {
+		return nil
+	}
+
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		v.AddError(key, "must be an integer value")
+	}
+	return &i
+}
+
 func (app *application) readQueryDate(
 	qs url.Values,
 	key string,

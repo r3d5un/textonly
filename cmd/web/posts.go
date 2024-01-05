@@ -86,8 +86,8 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 
 	qs := r.URL.Query()
 
-	input.Filters.ID = app.readQueryInt(qs, "id", 0, v)
-	input.Filters.Title = app.readQueryString(qs, "id", "")
+	input.Filters.ID = app.readQueryParamToIntPtr(qs, "id", v)
+	input.Filters.Title = app.readQueryString(qs, "title", "")
 	input.Filters.Lead = app.readQueryString(qs, "lead", "")
 	input.Filters.Post = app.readQueryString(qs, "post", "")
 	input.Filters.Created = app.readQueryDate(qs, "created", v)
