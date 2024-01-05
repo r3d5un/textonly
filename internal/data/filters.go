@@ -20,13 +20,15 @@ type Metadata struct {
 type Filters struct {
 	Page            int        `json:"page,omitempty"`
 	PageSize        int        `json:"page_size,omitempty"`
-	ID              int        `json:"id,omitempty"`
+	ID              *int       `json:"id,omitempty"`
 	UserID          int        `json:"user_id,omitempty"`
 	Title           string     `json:"title,omitempty"`
 	Lead            string     `json:"lead,omitempty"`
 	Post            string     `json:"post,omitempty"`
-	Created         *time.Time `json:"created,omitempty"`
-	LastUpdate      *time.Time `json:"last_update,omitempty"`
+	CreatedFrom     *time.Time `json:"created_from,omitempty"`
+	CreatedTo       *time.Time `json:"created_to,omitempty"`
+	LastUpdatedFrom *time.Time `json:"last_updated_from,omitempty"`
+	LastUpdatedTo   *time.Time `json:"last_updated_to,omitempty"`
 	Name            string     `json:"name,omitempty"`
 	SocialPlatform  string     `json:"social_platform,omitempty"`
 	OrderBy         []string   `json:"order_by"`

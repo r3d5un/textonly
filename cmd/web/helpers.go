@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -211,9 +212,10 @@ func (app *application) readQueryDate(
 	if s == "" {
 		return nil
 	}
-	date, err := time.Parse("2006-01-02T00:00:00", s)
+	date, err := time.Parse("2006-01-02", s)
 	if err != nil {
-		v.AddError(key, "not a valid date format ('2006-01-02T00:00:00Z')")
+		slog.Error("unable to parse date", "error", err)
+		v.AddError(key, "not a valid date format ('2006-01-02')")
 		return nil
 	}
 
