@@ -67,7 +67,7 @@ func (m *BlogPostModel) GetAll(filters Filters) ([]*BlogPost, Metadata, error) {
             AND ($6::timestamp IS NULL OR created <= $6)
             AND ($7::timestamp IS NULL OR last_update >= $7)
             AND ($8::timestamp IS NULL OR last_update <= $8)
-        ORDER BY id DESC
+        ` + CreateOrderByClause(filters.OrderBy) + `
         LIMIT $9 OFFSET $10;`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
