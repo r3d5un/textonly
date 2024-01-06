@@ -86,20 +86,22 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 
 	qs := r.URL.Query()
 
-	input.Filters.ID = app.readQueryInt(qs, "id", 0, v)
-	input.Filters.Title = app.readQueryString(qs, "id", "")
+	input.Filters.ID = app.readQueryParamToIntPtr(qs, "id", v)
+	input.Filters.Title = app.readQueryString(qs, "title", "")
 	input.Filters.Lead = app.readQueryString(qs, "lead", "")
 	input.Filters.Post = app.readQueryString(qs, "post", "")
-	input.Filters.Created = app.readQueryDate(qs, "created", v)
-	input.Filters.LastUpdate = app.readQueryDate(qs, "last_update", v)
+	input.Filters.CreatedFrom = app.readQueryDate(qs, "created_from", v)
+	input.Filters.CreatedTo = app.readQueryDate(qs, "created_to", v)
+	input.Filters.LastUpdatedFrom = app.readQueryDate(qs, "last_updated_from", v)
+	input.Filters.LastUpdatedTo = app.readQueryDate(qs, "last_updated_to", v)
 
 	input.Filters.Page = app.readQueryInt(qs, "page", 1, v)
 	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
 
-	input.Filters.OrderBy = app.readQueryCommaSeperatedString(qs, "order_by", "-last_update")
+	input.Filters.OrderBy = app.readQueryCommaSeperatedString(qs, "order_by", "-last_updated_from")
 	input.Filters.OrderBySafeList = []string{
-		"lead", "title", "post", "created", "last_update",
-		"-lead", "-title", "-post", "-created", "-last_update",
+		"lead", "title", "post", "created_from", "created_to", "last_updated_from, last_updated_to",
+		"-lead", "-title", "-post", "-created_from", "-created_to", "-last_updated_from", "-last_updated_to",
 	}
 
 	if data.ValidateFilters(v, input.Filters); !v.Valid() {

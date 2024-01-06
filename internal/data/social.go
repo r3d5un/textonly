@@ -91,8 +91,12 @@ func (m *SocialModel) GetByUserID(id int) ([]*Social, error) {
 func (m *SocialModel) GetAll(filters Filters) ([]*Social, Metadata, error) {
 	stmt := `SELECT COUNT(*) OVER(), id, user_id, social_platform, link
     FROM socials
+    WHERE
+        ($1::int IS NULL OR id = $1)
+        AND ($2::int IS NULL OR user_id = $2)
+        AND ($3 = '' OR social_platform LIKE ('%' || $3 || '%'))
     ORDER BY id DESC
-    LIMIT $1 OFFSET $2;`
+    LIMIT $4 OFFSET $5;`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -101,6 +105,9 @@ func (m *SocialModel) GetAll(filters Filters) ([]*Social, Metadata, error) {
 	rows, err := m.DB.QueryContext(
 		ctx,
 		stmt,
+		filters.ID,
+		filters.UserID,
+		filters.SocialPlatform,
 		filters.limit(),
 		filters.offset(),
 	)

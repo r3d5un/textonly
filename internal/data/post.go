@@ -58,8 +58,17 @@ func (m *BlogPostModel) GetAll(filters Filters) ([]*BlogPost, Metadata, error) {
 	stmt := `
         SELECT COUNT(*) OVER(), id, title, lead, post, last_update, created
         FROM posts
+        WHERE
+            ($1::int IS NULL OR id = $1)
+            AND ($2 = '' OR title LIKE ('%' || $2 || '%'))
+            AND ($3 = '' OR lead LIKE ('%' || $3 || '%'))
+            AND ($4 = '' OR post LIKE ('%' || $4 || '%'))
+            AND ($5::timestamp IS NULL OR created >= $5)
+            AND ($6::timestamp IS NULL OR created <= $6)
+            AND ($7::timestamp IS NULL OR last_update >= $7)
+            AND ($8::timestamp IS NULL OR last_update <= $8)
         ORDER BY id DESC
-        LIMIT $1 OFFSET $2;`
+        LIMIT $9 OFFSET $10;`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -68,6 +77,14 @@ func (m *BlogPostModel) GetAll(filters Filters) ([]*BlogPost, Metadata, error) {
 	rows, err := m.DB.QueryContext(
 		ctx,
 		stmt,
+		filters.ID,
+		filters.Title,
+		filters.Lead,
+		filters.Post,
+		filters.CreatedFrom,
+		filters.CreatedTo,
+		filters.LastUpdatedFrom,
+		filters.LastUpdatedTo,
 		filters.limit(),
 		filters.offset(),
 	)
