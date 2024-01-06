@@ -20,7 +20,7 @@ I wanted an excuse to create a CLI tool, and have therefore limited the WebUI to
 - [x] Web application configuration
 - [x] API endpoints
 - [x] API filters
-- [ ] API ordering
+- [x] API ordering
 - [x] Secure API endpoints
 - [ ] CLI
 - [x] Dockerfile
