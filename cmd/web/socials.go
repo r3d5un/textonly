@@ -86,11 +86,18 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 
 	qs := r.URL.Query()
 
-	input.Filters.ID = app.readQueryInt(qs, "id", 0, v)
-	input.Filters.UserID = app.readQueryInt(qs, "user_id", 0, v)
+	input.Filters.ID = app.readQueryParamToIntPtr(qs, "id", v)
+	input.Filters.UserID = app.readQueryParamToIntPtr(qs, "user_id", v)
+	input.Filters.SocialPlatform = app.readQueryString(qs, "social_platform", "")
 
 	input.Filters.Page = app.readQueryInt(qs, "page", 1, v)
 	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
+
+	input.Filters.OrderBy = app.readQueryCommaSeperatedString(qs, "order_by", "-id")
+	input.Filters.OrderBySafeList = []string{
+		"id", "user_id", "social_platform",
+		"-id", "-user_id", "-social_platform",
+	}
 
 	if data.ValidateFilters(v, input.Filters); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
