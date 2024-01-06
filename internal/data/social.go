@@ -95,7 +95,7 @@ func (m *SocialModel) GetAll(filters Filters) ([]*Social, Metadata, error) {
         ($1::int IS NULL OR id = $1)
         AND ($2::int IS NULL OR user_id = $2)
         AND ($3 = '' OR social_platform LIKE ('%' || $3 || '%'))
-    ORDER BY id DESC
+    ` + CreateOrderByClause(filters.OrderBy) + `
     LIMIT $4 OFFSET $5;`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)

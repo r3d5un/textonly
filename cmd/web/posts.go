@@ -102,6 +102,7 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 	input.Filters.OrderBySafeList = []string{
 		"lead", "title", "post", "created_from", "created_to", "last_updated_from, last_updated_to",
 		"-lead", "-title", "-post", "-created_from", "-created_to", "-last_updated_from", "-last_updated_to",
+		"id", "-id",
 	}
 
 	if data.ValidateFilters(v, input.Filters); !v.Valid() {
