@@ -16,7 +16,7 @@ func secureHeaders(next http.Handler) http.Handler {
 		w.Header().Set("Content-Security-Policy",
 			"default-src 'self' https://cdn.jsdelivr.net/npm/; "+
 				"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/; "+
-				"script-src 'self' https://cdn.jsdelivr.net/npm/; "+
+				"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net/npm/;"+
 				"font-src 'self' https://cdn.jsdelivr.net/npm/; "+
 				"img-src *;",
 		)
