@@ -5,6 +5,9 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
+	"github.com/swaggo/http-swagger"
+
+	_ "textonly.islandwind.me/docs"
 	"textonly.islandwind.me/ui"
 )
 
@@ -24,6 +27,9 @@ func (app *application) routes() http.Handler {
 
 	// healthcheck
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+
+	// swagger
+	router.HandlerFunc(http.MethodGet, "/swagger/:any", httpSwagger.WrapHandler)
 
 	// UI
 	router.HandlerFunc(http.MethodGet, "/", app.home)
