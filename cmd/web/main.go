@@ -25,6 +25,9 @@ type application struct {
 	config        *config.Config
 }
 
+// @title			Textonly API
+// @version		1.0
+// @description	Textonly API
 func main() {
 	displayVersion := flag.Bool("version", false, "Display version and exit")
 
