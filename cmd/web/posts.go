@@ -33,6 +33,18 @@ type UpdateBlogResponse struct {
 	RowsAffected int64  `json:"rows_affected,omitempty"`
 }
 
+// @Summary		Get a blog post
+// @Description	Get a blog post by ID
+// @Param			id	path	string	true	"ID (int)"
+// @Tags			Blog Post
+//
+// @Produce		json
+// @Success		200	{object}	BlogPostResponse
+// @Failure		500	{object}	ErrorMessage
+// @Failure		401	{object}	ErrorMessage
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/post/{id} [get]
 func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing blog ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
@@ -77,6 +89,27 @@ func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary		List blog posts
+// @Description	List blog posts
+// @Tags			Blog Post
+// @Produce		json
+// @Param			id					query		int		false	"id"
+// @Param			title				query		string	false	"title"
+// @Param			lead				query		string	false	"lead"
+// @Param			created_from		query		string	false	"created_from"
+// @Param			created_to			query		string	false	"created_to"
+// @Param			last_updated_from	query		string	false	"last_updated_from"
+// @Param			last_updated_to		query		string	false	"last_updated_to"
+// @Param			order_by			query		string	false	"order_by"
+//
+// @Success		200					{object}	BlogPostListResponse
+//
+// @Failure		500					{object}	ErrorMessage
+// @Failure		401					{object}	ErrorMessage
+//
+// @Failure		404					{object}	ErrorMessage
+// @Failure		429					{object}	ErrorMessage
+// @Router			/api/post/ [get]
 func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		data.Filters `json:"filters,omitempty"`
@@ -127,6 +160,21 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// @Summary		Post a blog post
+// @Description	Post a blog post by ID
+//
+// @Param			BlogPostRequest	body	BlogPostRequest	true	"Push Blog Post"
+//
+// @Tags			Blog Post
+// @Produce		json
+// @Success		200	{object}	BlogPostResponse
+// @Failure		500	{object}	ErrorMessage
+//
+// @Failure		401	{object}	ErrorMessage
+//
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/post/{id} [post]
 func (app *application) postBlogHandler(w http.ResponseWriter, r *http.Request) {
 	var blogPost BlogPostRequest
 
@@ -156,6 +204,17 @@ func (app *application) postBlogHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// @Summary		Delete a blog post
+// @Description	Delete a blog post by ID
+// @Param			id	path	string	true	"ID (int)"
+// @Tags			Blog Post
+// @Produce		json
+// @Success		200	{object}	UpdateBlogResponse
+// @Failure		500	{object}	ErrorMessage
+// @Failure		401	{object}	ErrorMessage
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/post/{id} [delete]
 func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing blog ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
@@ -195,6 +254,20 @@ func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// @Summary		Update a blog post
+// @Description	Update a blog post by ID
+//
+// @Param			data.BlogPost	body	data.BlogPost	true	"Update Blog Post"
+//
+// @Tags			Blog Post
+//
+// @Produce		json
+// @Success		200	{object}	UpdateBlogResponse
+// @Failure		500	{object}	ErrorMessage
+// @Failure		401	{object}	ErrorMessage
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/post/{id} [put]
 func (app *application) updateBlogHandler(w http.ResponseWriter, r *http.Request) {
 	var input data.BlogPost
 	err := app.readJSON(r, &input)

@@ -20,6 +20,18 @@ type UpdateUserResponse struct {
 	RowsAffected int64  `json:"rows_affected,omitempty"`
 }
 
+// @Summary		Get user data
+// @Description	Get user data
+// @Param			id	path	string	true	"ID (int)"
+// @Tags			User
+//
+// @Produce		json
+// @Success		200	{object}	UserPostResponse
+// @Failure		500	{object}	ErrorMessage
+// @Failure		401	{object}	ErrorMessage
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/user/{id} [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing user ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
@@ -64,6 +76,20 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary		Update user data
+// @Description	Update user data
+//
+// @Param			data.User	body	data.User	true	"Update User"
+//
+// @Tags			User
+//
+// @Produce		json
+// @Success		200	{object}	UpdateUserResponse
+// @Failure		500	{object}	ErrorMessage
+// @Failure		401	{object}	ErrorMessage
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/user/{id} [put]
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input data.User
 	err := app.readJSON(r, &input)

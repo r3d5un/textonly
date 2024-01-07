@@ -59,6 +59,12 @@ vendor:
 	@echo 'Vendoring dependencies...'
 	go mod vendor
 
+.PHONY: swagger
+swagger:
+	@echo 'Creating swagger documentation...'
+	swag fmt
+	swag init -g ./cmd/web/main.go
+
 # ==================================================================================== #
 # BUILD
 # ==================================================================================== #
@@ -66,6 +72,8 @@ vendor:
 ## build/web: build the cmd/web application
 .PHONY: build/web
 build/web:
+	@echo 'Creating swagger documentation...'
+	swag init -g ./cmd/api/main.go
 	@echo 'Building cmd/web...'
 	go build -ldflags='-s' -o=./bin/web ./cmd/web
 	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/web ./cmd/web
@@ -73,8 +81,19 @@ build/web:
 ## build/docker tag=$1: build the Docker image of the cmd/web application
 .PHONY: build/docker
 build/docker:
+	@echo 'Creating swagger documentation...'
+	swag init -g ./cmd/api/main.go
 	@echo 'Building docker image with tag ${tag}'
 	docker build -t textonly:${tag} .
+
+.PHONY: build/docker-compose/db
+build/docker-compose/db:
+	make swagger
+	make audit
+	make vendor
+	@echo 'Building and starting Docker Compose with "db" profile'
+	docker compose --profile=db up --build
+
 
 # ==================================================================================== #
 # DEPLOY DIGITALOCEAN

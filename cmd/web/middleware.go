@@ -16,9 +16,9 @@ func secureHeaders(next http.Handler) http.Handler {
 		w.Header().Set("Content-Security-Policy",
 			"default-src 'self' https://cdn.jsdelivr.net/npm/; "+
 				"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/; "+
-				"script-src 'self' https://cdn.jsdelivr.net/npm/; "+
+				"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net/npm/;"+
 				"font-src 'self' https://cdn.jsdelivr.net/npm/; "+
-				"img-src *;",
+				"img-src * data: https://online.swagger.io;",
 		)
 		w.Header().Set("Referrer-Policy", "origin-when-cross-origin")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -89,7 +89,7 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 		mu.Lock()
 
 		if _, found := clients[ip]; !found {
-			clients[ip] = &client{limiter: rate.NewLimiter(2, 4)}
+			clients[ip] = &client{limiter: rate.NewLimiter(25, 100)}
 		}
 
 		clients[ip].lastSeen = time.Now()

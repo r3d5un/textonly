@@ -5,24 +5,31 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
+	"github.com/swaggo/http-swagger"
+
+	_ "textonly.islandwind.me/docs"
 	"textonly.islandwind.me/ui"
 )
 
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
 
-	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		app.notFound(w)
-	})
+	// error handler routes
+	router.NotFound = http.HandlerFunc(app.notFoundResponse)
+	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	// for routes that require authentication
 	protected := alice.New(app.basicAuth)
 
+	// static files
 	fileServer := http.FileServer(http.FS(ui.Files))
 	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
 	// healthcheck
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+
+	// swagger
+	router.HandlerFunc(http.MethodGet, "/swagger/:any", httpSwagger.WrapHandler)
 
 	// UI
 	router.HandlerFunc(http.MethodGet, "/", app.home)
@@ -47,7 +54,7 @@ func (app *application) routes() http.Handler {
 		"/api/social/:id",
 		protected.ThenFunc(app.deleteSocialHandler),
 	)
-	router.Handler(http.MethodPut, "/api/social", protected.ThenFunc(app.putSocialHandler))
+	router.Handler(http.MethodPut, "/api/social", protected.ThenFunc(app.updateSocialHandler))
 
 	router.HandlerFunc(http.MethodGet, "/api/user/:id", app.getUserHandler)
 	router.Handler(http.MethodPut, "/api/user", protected.ThenFunc(app.updateUserHandler))

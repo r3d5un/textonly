@@ -33,6 +33,17 @@ type UpdateSocialResponse struct {
 	RowsAffected int64  `json:"rows_affected,omitempty"`
 }
 
+// @Summary		Get social data
+// @Description	Get social data by ID
+// @Param			id	path	string	true	"ID (int)"
+// @Tags			Social
+// @Produce		json
+// @Success		200	{object}	SocialResponse
+// @Failure		500	{object}	ErrorMessage
+// @Failure		401	{object}	ErrorMessage
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/social/{id} [get]
 func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing social ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
@@ -77,6 +88,21 @@ func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// @Summary		List social data
+// @Description	List social data
+// @Tags			Social
+// @Produce		json
+// @Param			id				query		int		false	"id"
+// @Param			user_id			query		int		false	"user_id"
+// @Param			social_platform	query		string	false	"social_platform"
+// @Success		200				{object}	SocialListResponse
+//
+// @Failure		500				{object}	ErrorMessage
+// @Failure		401				{object}	ErrorMessage
+//
+// @Failure		404				{object}	ErrorMessage
+// @Failure		429				{object}	ErrorMessage
+// @Router			/api/social/ [get]
 func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		data.Filters `json:"filters,omitempty"`
@@ -121,6 +147,21 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// @Summary		Post social data
+// @Description	Post social data
+//
+// @Param			SocialPostRequest	body	SocialPostRequest	true	"Push social data"
+//
+// @Tags			Social
+// @Produce		json
+// @Success		200	{object}	SocialResponse
+// @Failure		500	{object}	ErrorMessage
+//
+// @Failure		401	{object}	ErrorMessage
+//
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/social/{id} [post]
 func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request) {
 	var s SocialPostRequest
 
@@ -150,7 +191,21 @@ func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (app *application) putSocialHandler(w http.ResponseWriter, r *http.Request) {
+// @Summary		Update social data
+// @Description	Update social data
+//
+// @Param			data.Social	body	data.Social	true	"Update Social Data"
+//
+// @Tags			Social
+//
+// @Produce		json
+// @Success		200	{object}	UpdateSocialResponse
+// @Failure		500	{object}	ErrorMessage
+// @Failure		401	{object}	ErrorMessage
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/social/{id} [put]
+func (app *application) updateSocialHandler(w http.ResponseWriter, r *http.Request) {
 	var input data.Social
 	err := app.readJSON(r, &input)
 	if err != nil {
@@ -181,6 +236,17 @@ func (app *application) putSocialHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// @Summary		Delete social data
+// @Description	Delete social data
+// @Param			id	path	string	true	"ID (int)"
+// @Tags			Social
+// @Produce		json
+// @Success		200	{object}	UpdateSocialResponse
+// @Failure		500	{object}	ErrorMessage
+// @Failure		401	{object}	ErrorMessage
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/social/{id} [delete]
 func (app *application) deleteSocialHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing social ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
