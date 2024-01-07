@@ -11,13 +11,14 @@ import (
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
 
-	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		app.notFound(w)
-	})
+	// error handler routes
+	router.NotFound = http.HandlerFunc(app.notFoundResponse)
+	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	// for routes that require authentication
 	protected := alice.New(app.basicAuth)
 
+	// static files
 	fileServer := http.FileServer(http.FS(ui.Files))
 	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
