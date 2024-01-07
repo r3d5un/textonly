@@ -33,6 +33,17 @@ type UpdateBlogResponse struct {
 	RowsAffected int64  `json:"rows_affected,omitempty"`
 }
 
+// @Summary		Get a blog post
+// @Description	Get a blog post by ID
+// @Param			id	path	string	true	"ID (int)"
+// @Tags			EHF
+// @Produce		json
+// @Success		200	{object}	BlogPostResponse
+// @Failure		500	{object}	ErrorMessage
+// @Failure		401	{object}	ErrorMessage
+// @Failure		404	{object}	ErrorMessage
+// @Failure		429	{object}	ErrorMessage
+// @Router			/api/post/{id} [get]
 func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("parsing blog ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())

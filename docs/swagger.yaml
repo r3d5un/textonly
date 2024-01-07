@@ -1,0 +1,110 @@
+definitions:
+  data.BlogPost:
+    properties:
+      created:
+        type: string
+      id:
+        type: integer
+      last_update:
+        type: string
+      lead:
+        type: string
+      post:
+        type: string
+      title:
+        type: string
+    type: object
+  data.Metadata:
+    properties:
+      current_page:
+        type: integer
+      first_page:
+        type: integer
+      last_page:
+        type: integer
+      order_by:
+        type: string
+      page_size:
+        type: integer
+      total_records:
+        type: integer
+    type: object
+  main.BlogPostResponse:
+    properties:
+      data:
+        $ref: '#/definitions/data.BlogPost'
+      metadata:
+        $ref: '#/definitions/data.Metadata'
+    type: object
+  main.ErrorMessage:
+    properties:
+      message: {}
+    type: object
+  main.HealthCheckMessage:
+    properties:
+      environment:
+        type: string
+      status:
+        type: string
+      version:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Textonly API
+  title: Textonly API
+  version: "1.0"
+paths:
+  /api/post/{id}:
+    get:
+      description: Get a blog post by ID
+      parameters:
+      - description: ID (int)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.BlogPostResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.ErrorMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorMessage'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/main.ErrorMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorMessage'
+      summary: Get a blog post
+      tags:
+      - EHF
+  /v1/healthcheck:
+    get:
+      description: Endpoint to check if the API is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.HealthCheckMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorMessage'
+      summary: Healthcheck
+      tags:
+      - healthcheck
+swagger: "2.0"
