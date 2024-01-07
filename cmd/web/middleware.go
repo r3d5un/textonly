@@ -18,7 +18,7 @@ func secureHeaders(next http.Handler) http.Handler {
 				"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/; "+
 				"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net/npm/;"+
 				"font-src 'self' https://cdn.jsdelivr.net/npm/; "+
-				"img-src *;",
+				"img-src * data: https://online.swagger.io;",
 		)
 		w.Header().Set("Referrer-Policy", "origin-when-cross-origin")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
