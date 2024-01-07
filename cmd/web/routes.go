@@ -54,7 +54,7 @@ func (app *application) routes() http.Handler {
 		"/api/social/:id",
 		protected.ThenFunc(app.deleteSocialHandler),
 	)
-	router.Handler(http.MethodPut, "/api/social", protected.ThenFunc(app.putSocialHandler))
+	router.Handler(http.MethodPut, "/api/social", protected.ThenFunc(app.updateSocialHandler))
 
 	router.HandlerFunc(http.MethodGet, "/api/user/:id", app.getUserHandler)
 	router.Handler(http.MethodPut, "/api/user", protected.ThenFunc(app.updateUserHandler))
