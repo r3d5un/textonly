@@ -10,13 +10,13 @@ type HealthCheckMessage struct {
 	Version     string `json:"version"`
 }
 
-// @Summary Healthcheck
-// @Description Endpoint to check if the API is running
-// @Tags    healthcheck
-// @Produce json
-// @Success 200 {object} HealthCheckMessage
-// @Failure 500 {object} ErrorMessage
-// @Router /v1/healthcheck [get]
+// @Summary		Healthcheck
+// @Description	Endpoint to check if the API is running
+// @Tags			healthcheck
+// @Produce		json
+// @Success		200	{object}	HealthCheckMessage
+// @Failure		500	{object}	ErrorMessage
+// @Router			/v1/healthcheck [get]
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	healthCheckMessage := HealthCheckMessage{
 		Status:  "available",
