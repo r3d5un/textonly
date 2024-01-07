@@ -86,6 +86,15 @@ build/docker:
 	@echo 'Building docker image with tag ${tag}'
 	docker build -t textonly:${tag} .
 
+.PHONY: build/docker-compose/db
+build/docker-compose/db:
+	make swagger
+	make audit
+	make vendor
+	@echo 'Building and starting Docker Compose with "db" profile'
+	docker compose --profile=db up --build
+
+
 # ==================================================================================== #
 # DEPLOY DIGITALOCEAN
 # ==================================================================================== #
