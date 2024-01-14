@@ -25,7 +25,6 @@ type AppConfig struct {
 
 func New() (*Config, error) {
 	viper.AutomaticEnv()
-	viper.SetEnvPrefix("TEXTONLY")
 	viper.AllowEmptyEnv(false)
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -37,29 +36,29 @@ func New() (*Config, error) {
 		return nil, err
 	}
 
-	err = viper.BindEnv("database.dsn", "dsn")
+	err = viper.BindEnv("database.dsn", "TEXTONLY_DSN")
 	if err != nil {
 		return nil, err
 	}
 
-	err = viper.BindEnv("app.url", "url")
+	err = viper.BindEnv("app.url", "TEXTONLY_URL")
 	if err != nil {
 		return nil, err
 	}
-	err = viper.BindEnv("app.env", "env")
+	err = viper.BindEnv("app.env", "TEXTONLY_ENV")
 	if err != nil {
 		return nil, err
 	}
 
-	err = viper.BindEnv("app.user", "user")
+	err = viper.BindEnv("app.user", "TEXTONLY_USER")
 	if err != nil {
 		return nil, err
 	}
-	err = viper.BindEnv("app.password", "password")
+	err = viper.BindEnv("app.password", "TEXTONLY_PASSWORD")
 	if err != nil {
 		return nil, err
 	}
-	err = viper.BindEnv("app.password", "realm")
+	err = viper.BindEnv("app.password", "TEXTONLY_REALM")
 	if err != nil {
 		return nil, err
 	}
