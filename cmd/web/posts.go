@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -46,36 +45,45 @@ type UpdateBlogResponse struct {
 // @Failure		429	{object}	ErrorMessage
 // @Router			/api/post/{id} [get]
 func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
-	slog.Info("parsing blog ID from path", "key", "id", "path", r.URL.Path)
+	ctx := r.Context()
+
+	app.logger.InfoContext(ctx, "parsing blog ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil {
-		slog.Error("unable to get ID parameter from URL string", "params", params, "error", err)
+		app.logger.ErrorContext(
+			ctx,
+			"unable to get ID parameter from URL string",
+			"params",
+			params,
+			"error",
+			err,
+		)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 	if id < 0 {
-		slog.Info("invalid ID", "id", id)
+		app.logger.InfoContext(ctx, "invalid ID", "id", id)
 		app.notFound(w)
 		return
 	}
 
-	slog.Info("retrieving post", "id", id)
+	app.logger.InfoContext(ctx, "retrieving post", "id", id)
 	bp, err := app.models.BlogPosts.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			slog.Info("no records found", "id", id)
+			app.logger.InfoContext(ctx, "no records found", "id", id)
 			app.notFoundResponse(w, r)
 			return
 		default:
-			slog.Error("an error occurred during retrieval", "error", err)
+			app.logger.ErrorContext(ctx, "an error occurred during retrieval", "error", err)
 			app.serverErrorResponse(w, r, err)
 			return
 		}
 	}
 
-	slog.Info("returning blog post", "id", bp.ID, "title", bp.Title)
+	app.logger.InfoContext(ctx, "returning blog post", "id", bp.ID, "title", bp.Title)
 	err = app.writeJSON(
 		w,
 		http.StatusOK,
@@ -83,7 +91,7 @@ func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 		nil,
 	)
 	if err != nil {
-		slog.Error("unable to write response", "error", err)
+		app.logger.ErrorContext(ctx, "unable to write response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -111,6 +119,8 @@ func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure		429					{object}	ErrorMessage
 // @Router			/api/post/ [get]
 func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var input struct {
 		data.Filters `json:"filters,omitempty"`
 	}
@@ -145,7 +155,7 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 
 	bp, metadata, err := app.models.BlogPosts.GetAll(input.Filters)
 	if err != nil {
-		slog.Error("unable to get all blog posts", "error", err, "input", input)
+		app.logger.ErrorContext(ctx, "unable to get all blog posts", "error", err, "input", input)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -154,7 +164,7 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 		w, http.StatusOK, BlogPostListResponse{Metadata: metadata, Data: bp}, nil,
 	)
 	if err != nil {
-		slog.Error("error writing response", "error", err)
+		app.logger.ErrorContext(ctx, "error writing response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -176,11 +186,13 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 // @Failure		429	{object}	ErrorMessage
 // @Router			/api/post/{id} [post]
 func (app *application) postBlogHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var blogPost BlogPostRequest
 
 	err := app.readJSON(r, &blogPost)
 	if err != nil {
-		slog.Error("unable to parse JSON request body", "error", err)
+		app.logger.ErrorContext(ctx, "unable to parse JSON request body", "error", err)
 		app.badRequestResponse(w, r, "unable to parse JSON request body")
 		return
 	}
@@ -191,14 +203,14 @@ func (app *application) postBlogHandler(w http.ResponseWriter, r *http.Request) 
 		Post:  blogPost.Post,
 	})
 	if err != nil {
-		slog.Error("unable to create blog post", "error", err)
+		app.logger.ErrorContext(ctx, "unable to create blog post", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	err = app.writeJSON(w, http.StatusCreated, bp, nil)
 	if err != nil {
-		slog.Error("unable to write response", "error", err)
+		app.logger.ErrorContext(ctx, "unable to write response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -216,16 +228,25 @@ func (app *application) postBlogHandler(w http.ResponseWriter, r *http.Request) 
 // @Failure		429	{object}	ErrorMessage
 // @Router			/api/post/{id} [delete]
 func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request) {
-	slog.Info("parsing blog ID from path", "key", "id", "path", r.URL.Path)
+	ctx := r.Context()
+
+	app.logger.InfoContext(ctx, "parsing blog ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil {
-		slog.Error("unable to get ID parameter from URL string", "params", params, "error", err)
+		app.logger.ErrorContext(
+			ctx,
+			"unable to get ID parameter from URL string",
+			"params",
+			params,
+			"error",
+			err,
+		)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 	if id < 0 {
-		slog.Info("invalid ID", "id", id)
+		app.logger.InfoContext(ctx, "invalid ID", "id", id)
 		app.notFound(w)
 		return
 	}
@@ -269,10 +290,20 @@ func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request
 // @Failure		429	{object}	ErrorMessage
 // @Router			/api/post/{id} [put]
 func (app *application) updateBlogHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var input data.BlogPost
+
 	err := app.readJSON(r, &input)
 	if err != nil {
-		slog.Error("unable to parse JSON request body", "error", err, "request", r.Body)
+		app.logger.ErrorContext(
+			ctx,
+			"unable to parse JSON request body",
+			"error",
+			err,
+			"request",
+			r.Body,
+		)
 		app.badRequestResponse(w, r, "unable to parse JSON request body")
 		return
 	}

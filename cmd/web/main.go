@@ -29,6 +29,10 @@ type application struct {
 // @version		1.0
 // @description	Textonly API
 func main() {
+	ctxLogHandler := &ContextHandler{slog.NewJSONHandler(os.Stdout, nil)}
+	logger := slog.New(ctxLogHandler)
+	slog.SetDefault(logger)
+
 	displayVersion := flag.Bool("version", false, "Display version and exit")
 
 	flag.Parse()
@@ -36,9 +40,6 @@ func main() {
 	if *displayVersion {
 		fmt.Printf("textonly.islandwind.me %s\n", version)
 	}
-
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
 
 	slog.Info("loading configuration")
 	config, err := config.New()

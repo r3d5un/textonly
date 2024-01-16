@@ -3,11 +3,13 @@ package main
 import (
 	"crypto/subtle"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/time/rate"
 )
 
@@ -37,8 +39,10 @@ func (app *application) logRequest(next http.Handler) http.Handler {
 			"request_method", r.Method,
 			"request_url", r.URL.String(),
 		)
+		rID := uuid.New()
+		ctx := AppendCtx(r.Context(), slog.String("request_id", rID.String()))
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

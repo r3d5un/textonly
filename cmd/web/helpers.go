@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -31,10 +32,17 @@ func (app *application) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
 }
 
-func (app *application) render(w http.ResponseWriter, status int, page string, data *templateData) {
+func (app *application) render(
+	ctx context.Context,
+	w http.ResponseWriter,
+	status int,
+	page string,
+	data *templateData,
+) {
 	ts, ok := app.templateCache[page]
 	if !ok {
 		err := fmt.Errorf("the template %s does not exist", page)
+		app.logger.ErrorContext(ctx, "error occurred while rendering template", "error", err)
 		app.serverError(w, err)
 		return
 	}
@@ -52,10 +60,16 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 	buf.WriteTo(w)
 }
 
-func (app *application) renderXML(w http.ResponseWriter, status int, data *templateData) {
+func (app *application) renderXML(
+	ctx context.Context,
+	w http.ResponseWriter,
+	status int,
+	data *templateData,
+) {
 	ts, ok := app.templateCache["feed"]
 	if !ok {
 		err := fmt.Errorf("the feed template does not exist")
+		app.logger.ErrorContext(ctx, "error occurred while rendering template", "error", err)
 		app.serverError(w, err)
 		return
 	}
@@ -133,20 +147,22 @@ func (app *application) readJSON(r *http.Request, data interface{}) error {
 }
 
 func (app *application) redirectToLatestPost(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	posts, err := app.models.BlogPosts.LastN(1)
 	if err != nil {
-		app.logger.Error("error occurred while redirecting", "error", err)
+		app.logger.ErrorContext(ctx, "error occurred while redirecting", "error", err)
 		return
 	}
 
 	if len(posts) != 1 {
-		app.logger.Error("unexected number of posts returned", "posts", posts)
+		app.logger.ErrorContext(ctx, "unexected number of posts returned", "posts", posts)
 		app.notFound(w)
 	}
 
 	urlString := fmt.Sprintf("/post/read/%d", posts[0].ID)
 
-	app.logger.Info("redirecting to last post", "url", urlString)
+	app.logger.InfoContext(ctx, "redirecting to last post", "url", urlString)
 	http.Redirect(w, r, urlString, http.StatusMovedPermanently)
 }
 
@@ -214,7 +230,6 @@ func (app *application) readQueryDate(
 	}
 	date, err := time.Parse("2006-01-02", s)
 	if err != nil {
-		slog.Error("unable to parse date", "error", err)
 		v.AddError(key, "not a valid date format ('2006-01-02')")
 		return nil
 	}
@@ -255,4 +270,43 @@ func (app *application) readQueryCommaSeperatedString(
 	}
 
 	return values
+}
+
+type ctxKey string
+
+const (
+	slogFields ctxKey = "slog_fields"
+)
+
+type ContextHandler struct {
+	slog.Handler
+}
+
+// Handle adds contextual attributes to the Record before calling the underlying
+// handler
+func (h ContextHandler) Handle(ctx context.Context, r slog.Record) error {
+	if attrs, ok := ctx.Value(slogFields).([]slog.Attr); ok {
+		for _, v := range attrs {
+			r.AddAttrs(v)
+		}
+	}
+
+	return h.Handler.Handle(ctx, r)
+}
+
+// AppendCtx adds an slog attribute to the provided context so that it will be
+// included in any Record created with such context
+func AppendCtx(parent context.Context, attr slog.Attr) context.Context {
+	if parent == nil {
+		parent = context.Background()
+	}
+
+	if v, ok := parent.Value(slogFields).([]slog.Attr); ok {
+		v = append(v, attr)
+		return context.WithValue(parent, slogFields, v)
+	}
+
+	v := []slog.Attr{}
+	v = append(v, attr)
+	return context.WithValue(parent, slogFields, v)
 }
