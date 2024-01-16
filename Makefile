@@ -73,7 +73,7 @@ swagger:
 .PHONY: build/web
 build/web:
 	@echo 'Creating swagger documentation...'
-	swag init -g ./cmd/api/main.go
+	swag init -g ./cmd/web/main.go
 	@echo 'Building cmd/web...'
 	go build -ldflags='-s' -o=./bin/web ./cmd/web
 	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/web ./cmd/web
@@ -82,7 +82,7 @@ build/web:
 .PHONY: build/docker
 build/docker:
 	@echo 'Creating swagger documentation...'
-	swag init -g ./cmd/api/main.go
+	swag init -g ./cmd/web/main.go
 	@echo 'Building docker image with tag ${tag}'
 	docker build -t textonly:${tag} .
 

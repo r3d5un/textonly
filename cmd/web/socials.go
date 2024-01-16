@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -45,36 +44,45 @@ type UpdateSocialResponse struct {
 // @Failure		429	{object}	ErrorMessage
 // @Router			/api/social/{id} [get]
 func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request) {
-	slog.Info("parsing social ID from path", "key", "id", "path", r.URL.Path)
+	ctx := r.Context()
+
+	app.logger.InfoContext(ctx, "parsing social ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil {
-		slog.Error("unable to get ID parameter from URL string", "params", params, "error", err)
+		app.logger.ErrorContext(
+			ctx,
+			"unable to get ID parameter from URL string",
+			"params",
+			params,
+			"error",
+			err,
+		)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 	if id < 0 {
-		slog.Info("invalid ID", "id", id)
+		app.logger.InfoContext(ctx, "invalid ID", "id", id)
 		app.notFoundResponse(w, r)
 		return
 	}
 
-	slog.Info("retrieving social account data", "id", id)
+	app.logger.InfoContext(ctx, "retrieving social account data", "id", id)
 	s, err := app.models.Socials.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			slog.Info("no records found", "id", id)
+			app.logger.InfoContext(ctx, "no records found", "id", id)
 			app.notFoundResponse(w, r)
 			return
 		default:
-			slog.Error("an error occurred during retrieval", "error", err)
+			app.logger.ErrorContext(ctx, "an error occurred during retrieval", "error", err)
 			app.serverErrorResponse(w, r, err)
 			return
 		}
 	}
 
-	slog.Info("returning social account data", "id", s.ID)
+	app.logger.InfoContext(ctx, "returning social account data", "id", s.ID)
 	err = app.writeJSON(
 		w,
 		http.StatusOK,
@@ -82,7 +90,7 @@ func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request)
 		nil,
 	)
 	if err != nil {
-		slog.Error("unable to write response", "error", err)
+		app.logger.ErrorContext(ctx, "unable to write response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -104,6 +112,7 @@ func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request)
 // @Failure		429				{object}	ErrorMessage
 // @Router			/api/social/ [get]
 func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var input struct {
 		data.Filters `json:"filters,omitempty"`
 	}
@@ -132,7 +141,7 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 
 	ss, metadata, err := app.models.Socials.GetAll(input.Filters)
 	if err != nil {
-		slog.Error("unable to get social data", "error", err, "input", input)
+		app.logger.ErrorContext(ctx, "unable to get social data", "error", err, "input", input)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -141,7 +150,7 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 		w, http.StatusOK, SocialListResponse{Metadata: metadata, Data: ss}, nil,
 	)
 	if err != nil {
-		slog.Error("error writing response", "error", err)
+		app.logger.ErrorContext(ctx, "error writing response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -163,11 +172,13 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 // @Failure		429	{object}	ErrorMessage
 // @Router			/api/social/{id} [post]
 func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var s SocialPostRequest
 
 	err := app.readJSON(r, &s)
 	if err != nil {
-		slog.Error("unable to parse JSON request body", "error", err)
+		app.logger.ErrorContext(ctx, "unable to parse JSON request body", "error", err)
 		app.badRequestResponse(w, r, "unable to parse JSON request body")
 		return
 	}
@@ -178,14 +189,14 @@ func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request
 		Link:           s.Link,
 	})
 	if err != nil {
-		slog.Error("unable to create social data", "error", err)
+		app.logger.ErrorContext(ctx, "unable to create social data", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	err = app.writeJSON(w, http.StatusCreated, queryResponse, nil)
 	if err != nil {
-		slog.Error("unable to write response", "error", err)
+		app.logger.ErrorContext(ctx, "unable to write response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -206,10 +217,20 @@ func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request
 // @Failure		429	{object}	ErrorMessage
 // @Router			/api/social/{id} [put]
 func (app *application) updateSocialHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var input data.Social
+
 	err := app.readJSON(r, &input)
 	if err != nil {
-		slog.Error("unable to parse JSON request body", "error", err, "request", r.Body)
+		app.logger.ErrorContext(
+			ctx,
+			"unable to parse JSON request body",
+			"error",
+			err,
+			"request",
+			r.Body,
+		)
 		app.badRequestResponse(w, r, "uanble to parse JSON request body")
 		return
 	}
@@ -248,16 +269,25 @@ func (app *application) updateSocialHandler(w http.ResponseWriter, r *http.Reque
 // @Failure		429	{object}	ErrorMessage
 // @Router			/api/social/{id} [delete]
 func (app *application) deleteSocialHandler(w http.ResponseWriter, r *http.Request) {
-	slog.Info("parsing social ID from path", "key", "id", "path", r.URL.Path)
+	ctx := r.Context()
+
+	app.logger.InfoContext(ctx, "parsing social ID from path", "key", "id", "path", r.URL.Path)
 	params := httprouter.ParamsFromContext(r.Context())
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil {
-		slog.Error("unable to get ID parameter from URL string", "params", params, "error", err)
+		app.logger.ErrorContext(
+			ctx,
+			"unable to get ID parameter from URL string",
+			"params",
+			params,
+			"error",
+			err,
+		)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 	if id < 0 {
-		slog.Info("invalid ID", "id", id)
+		app.logger.InfoContext(ctx, "invalid ID", "id", id)
 		app.notFound(w)
 		return
 	}
