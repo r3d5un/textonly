@@ -20,7 +20,7 @@ type AppConfig struct {
 	URL      string `json:"url"`
 	ENV      string `json:"env"`
 	User     string `json:"user"`
-	Password string `json:"password"`
+	Password string `json:"-"`
 	Realm    string `json:"realm"`
 }
 
