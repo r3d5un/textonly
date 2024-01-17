@@ -21,6 +21,6 @@ func NewModels(db *sql.DB, logger *slog.Logger, timeout *time.Duration) Models {
 	return Models{
 		BlogPosts: BlogPostModel{DB: db, Logger: logger, Timeout: timeout},
 		Socials:   SocialModel{DB: db, Logger: logger, Timeout: timeout},
-		Users:     UserModel{DB: db},
+		Users:     UserModel{DB: db, Logger: logger, Timeout: timeout},
 	}
 }

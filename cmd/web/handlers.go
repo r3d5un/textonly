@@ -70,7 +70,7 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	app.logger.InfoContext(ctx, "querying user data", "id", 1)
-	user, err := app.models.Users.Get(1)
+	user, err := app.models.Users.Get(ctx, 1)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "unable to query user data", "error", err)
 		app.serverError(w, err)
