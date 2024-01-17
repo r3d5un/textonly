@@ -30,6 +30,7 @@ func New() (*Config, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("/app/")
+	viper.AddConfigPath("$HOME/.config/textonly/")
 	viper.AddConfigPath(".")
 
 	err := viper.ReadInConfig()

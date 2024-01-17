@@ -46,6 +46,7 @@ func main() {
 	config, err := config.New()
 	if err != nil {
 		slog.Error("unable to load configuration", "error", err)
+		os.Exit(1)
 	}
 	slog.Info("configuration loaded", "configuration", config)
 
