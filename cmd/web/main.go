@@ -47,7 +47,7 @@ func main() {
 	if err != nil {
 		slog.Error("unable to load configuration", "error", err)
 	}
-	slog.Info("configuration loaded", "environment", config.App.ENV)
+	slog.Info("configuration loaded", "configuration", config)
 
 	logger.Info("opening database connection pool...")
 	db, err := openDB(config.Database.DSN)
