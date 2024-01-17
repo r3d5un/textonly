@@ -79,7 +79,7 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 	app.logger.InfoContext(ctx, "retrieved user data", "user", user)
 
 	app.logger.Info("querying social data")
-	socials, err := app.models.Socials.GetByUserID(user.ID)
+	socials, err := app.models.Socials.GetByUserID(ctx, user.ID)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "uanble to query social data", "error", err)
 		app.serverError(w, err)

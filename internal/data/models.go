@@ -20,7 +20,7 @@ type Models struct {
 func NewModels(db *sql.DB, logger *slog.Logger, timeout *time.Duration) Models {
 	return Models{
 		BlogPosts: BlogPostModel{DB: db, Logger: logger, Timeout: timeout},
-		Socials:   SocialModel{DB: db},
+		Socials:   SocialModel{DB: db, Logger: logger, Timeout: timeout},
 		Users:     UserModel{DB: db},
 	}
 }
