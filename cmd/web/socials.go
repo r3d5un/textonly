@@ -68,7 +68,7 @@ func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	app.logger.InfoContext(ctx, "retrieving social account data", "id", id)
-	s, err := app.models.Socials.Get(id)
+	s, err := app.models.Socials.Get(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -139,7 +139,7 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ss, metadata, err := app.models.Socials.GetAll(input.Filters)
+	ss, metadata, err := app.models.Socials.GetAll(ctx, input.Filters)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "unable to get social data", "error", err, "input", input)
 		app.serverErrorResponse(w, r, err)
@@ -183,7 +183,7 @@ func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	queryResponse, err := app.models.Socials.Insert(&data.Social{
+	queryResponse, err := app.models.Socials.Insert(ctx, &data.Social{
 		UserID:         s.UserID,
 		SocialPlatform: s.SocialPlatform,
 		Link:           s.Link,
@@ -235,7 +235,7 @@ func (app *application) updateSocialHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rowsAffected, err := app.models.Socials.Update(&input)
+	rowsAffected, err := app.models.Socials.Update(ctx, &input)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -292,7 +292,7 @@ func (app *application) deleteSocialHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rowsAffected, err := app.models.Socials.Delete(id)
+	rowsAffected, err := app.models.Socials.Delete(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):

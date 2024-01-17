@@ -69,7 +69,7 @@ func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.logger.InfoContext(ctx, "retrieving post", "id", id)
-	bp, err := app.models.BlogPosts.Get(id)
+	bp, err := app.models.BlogPosts.Get(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -153,7 +153,7 @@ func (app *application) listBlogHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	bp, metadata, err := app.models.BlogPosts.GetAll(input.Filters)
+	bp, metadata, err := app.models.BlogPosts.GetAll(ctx, input.Filters)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "unable to get all blog posts", "error", err, "input", input)
 		app.serverErrorResponse(w, r, err)
@@ -197,7 +197,7 @@ func (app *application) postBlogHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	bp, err := app.models.BlogPosts.Insert(&data.BlogPost{
+	bp, err := app.models.BlogPosts.Insert(ctx, &data.BlogPost{
 		Title: blogPost.Title,
 		Lead:  blogPost.Lead,
 		Post:  blogPost.Post,
@@ -251,7 +251,7 @@ func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	rowsAffected, err := app.models.BlogPosts.Delete(id)
+	rowsAffected, err := app.models.BlogPosts.Delete(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -308,7 +308,7 @@ func (app *application) updateBlogHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	rowsAffected, err := app.models.BlogPosts.Update(&input)
+	rowsAffected, err := app.models.BlogPosts.Update(ctx, &input)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

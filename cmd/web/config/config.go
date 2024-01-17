@@ -12,14 +12,15 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	DSN string `json:"dsn"`
+	DSN     string `json:"-"`
+	Timeout int    `json:"timeout"`
 }
 
 type AppConfig struct {
 	URL      string `json:"url"`
 	ENV      string `json:"env"`
 	User     string `json:"user"`
-	Password string `json:"password"`
+	Password string `json:"-"`
 	Realm    string `json:"realm"`
 }
 

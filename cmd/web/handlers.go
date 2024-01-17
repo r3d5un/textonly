@@ -25,7 +25,7 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.logger.InfoContext(ctx, "querying blogpost", "id", id)
-	blogPost, err := app.models.BlogPosts.Get(id)
+	blogPost, err := app.models.BlogPosts.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, data.ErrNoRecord) {
 			app.notFound(w)
@@ -54,7 +54,7 @@ func (app *application) posts(w http.ResponseWriter, r *http.Request) {
 	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
 
 	app.logger.InfoContext(ctx, "querying blogposts")
-	blogPosts, _, err := app.models.BlogPosts.GetAll(input.Filters)
+	blogPosts, _, err := app.models.BlogPosts.GetAll(ctx, input.Filters)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -70,7 +70,7 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	app.logger.InfoContext(ctx, "querying user data", "id", 1)
-	user, err := app.models.Users.Get(1)
+	user, err := app.models.Users.Get(ctx, 1)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "unable to query user data", "error", err)
 		app.serverError(w, err)
@@ -79,7 +79,7 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 	app.logger.InfoContext(ctx, "retrieved user data", "user", user)
 
 	app.logger.Info("querying social data")
-	socials, err := app.models.Socials.GetByUserID(user.ID)
+	socials, err := app.models.Socials.GetByUserID(ctx, user.ID)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "uanble to query social data", "error", err)
 		app.serverError(w, err)
@@ -107,7 +107,7 @@ func (app *application) feed(w http.ResponseWriter, r *http.Request) {
 	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
 
 	app.logger.InfoContext(ctx, "querying blogposts")
-	blogPosts, _, err := app.models.BlogPosts.GetAll(input.Filters)
+	blogPosts, _, err := app.models.BlogPosts.GetAll(ctx, input.Filters)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "unable to query blogposts", "error", err)
 		app.serverError(w, err)

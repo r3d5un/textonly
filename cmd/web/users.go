@@ -56,7 +56,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.logger.InfoContext(ctx, "retrieving user", "id", id)
-	user, err := app.models.Users.Get(id)
+	user, err := app.models.Users.Get(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -110,7 +110,7 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	rowsAffected, err := app.models.Users.Update(&input)
+	rowsAffected, err := app.models.Users.Update(ctx, &input)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "unable to update user", "error", err)
 		app.serverErrorResponse(w, r, err)

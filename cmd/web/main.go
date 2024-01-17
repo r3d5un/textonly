@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"log/slog"
 	"os"
+	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"textonly.islandwind.me/cmd/web/config"
@@ -46,7 +47,7 @@ func main() {
 	if err != nil {
 		slog.Error("unable to load configuration", "error", err)
 	}
-	slog.Info("configuration loaded", "environment", config.App.ENV)
+	slog.Info("configuration loaded", "configuration", config)
 
 	logger.Info("opening database connection pool...")
 	db, err := openDB(config.Database.DSN)
@@ -55,6 +56,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
+	queryTimeout := time.Duration(config.Database.Timeout) * time.Second
 	logger.Info("database connection pool established")
 
 	logger.Info("caching templates...")
@@ -67,7 +69,7 @@ func main() {
 
 	app := &application{
 		logger:        logger,
-		models:        data.NewModels(db),
+		models:        data.NewModels(db, logger, &queryTimeout),
 		templateCache: templateCache,
 		config:        config,
 	}

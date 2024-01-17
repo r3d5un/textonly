@@ -9,3 +9,4 @@ app:
   realm: "realm"
 database:
   dsn: "postgresql://postgres:postgres@database:5432?database=blog"
+  timeout: 3
