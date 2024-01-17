@@ -12,7 +12,8 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	DSN string `json:"dsn"`
+	DSN     string `json:"-"`
+	Timeout int    `json:"timeout"`
 }
 
 type AppConfig struct {

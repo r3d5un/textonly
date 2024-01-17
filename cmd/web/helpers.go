@@ -149,7 +149,7 @@ func (app *application) readJSON(r *http.Request, data interface{}) error {
 func (app *application) redirectToLatestPost(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	posts, err := app.models.BlogPosts.LastN(1)
+	posts, err := app.models.BlogPosts.LastN(ctx, 1)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "error occurred while redirecting", "error", err)
 		return

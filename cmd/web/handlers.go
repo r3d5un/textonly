@@ -25,7 +25,7 @@ func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.logger.InfoContext(ctx, "querying blogpost", "id", id)
-	blogPost, err := app.models.BlogPosts.Get(id)
+	blogPost, err := app.models.BlogPosts.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, data.ErrNoRecord) {
 			app.notFound(w)
@@ -54,7 +54,7 @@ func (app *application) posts(w http.ResponseWriter, r *http.Request) {
 	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
 
 	app.logger.InfoContext(ctx, "querying blogposts")
-	blogPosts, _, err := app.models.BlogPosts.GetAll(input.Filters)
+	blogPosts, _, err := app.models.BlogPosts.GetAll(ctx, input.Filters)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -107,7 +107,7 @@ func (app *application) feed(w http.ResponseWriter, r *http.Request) {
 	input.Filters.PageSize = app.readQueryInt(qs, "page_size", 50_000, v)
 
 	app.logger.InfoContext(ctx, "querying blogposts")
-	blogPosts, _, err := app.models.BlogPosts.GetAll(input.Filters)
+	blogPosts, _, err := app.models.BlogPosts.GetAll(ctx, input.Filters)
 	if err != nil {
 		app.logger.ErrorContext(ctx, "unable to query blogposts", "error", err)
 		app.serverError(w, err)
