@@ -75,7 +75,7 @@ func main() {
 		config:        config,
 	}
 
-	err = app.serve(app.config.App.URL)
+	err = app.serve(app.config.Server.URL)
 	if err != nil {
 		logger.Error("an error occurred", "error", err)
 		os.Exit(1)
