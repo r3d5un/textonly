@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	Database *DatabaseConfig `json:"database"`
-	App      *AppConfig      `json:"app"`
+	Server   *ServerConfig   `json:"server"`
 }
 
 type DatabaseConfig struct {
@@ -16,7 +16,7 @@ type DatabaseConfig struct {
 	Timeout int    `json:"timeout"`
 }
 
-type AppConfig struct {
+type ServerConfig struct {
 	URL      string `json:"url"`
 	ENV      string `json:"env"`
 	User     string `json:"user"`
@@ -43,24 +43,24 @@ func New() (*Config, error) {
 		return nil, err
 	}
 
-	err = viper.BindEnv("app.url", "TEXTONLY_URL")
+	err = viper.BindEnv("server.url", "TEXTONLY_URL")
 	if err != nil {
 		return nil, err
 	}
-	err = viper.BindEnv("app.env", "TEXTONLY_ENV")
+	err = viper.BindEnv("server.env", "TEXTONLY_ENV")
 	if err != nil {
 		return nil, err
 	}
 
-	err = viper.BindEnv("app.user", "TEXTONLY_USER")
+	err = viper.BindEnv("server.user", "TEXTONLY_USER")
 	if err != nil {
 		return nil, err
 	}
-	err = viper.BindEnv("app.password", "TEXTONLY_PASSWORD")
+	err = viper.BindEnv("server.password", "TEXTONLY_PASSWORD")
 	if err != nil {
 		return nil, err
 	}
-	err = viper.BindEnv("app.password", "TEXTONLY_REALM")
+	err = viper.BindEnv("server.password", "TEXTONLY_REALM")
 	if err != nil {
 		return nil, err
 	}

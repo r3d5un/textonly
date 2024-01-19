@@ -20,7 +20,7 @@ type HealthCheckMessage struct {
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	healthCheckMessage := HealthCheckMessage{
 		Status:      "available",
-		Environment: app.config.App.ENV,
+		Environment: app.config.Server.ENV,
 		Version:     version,
 	}
 

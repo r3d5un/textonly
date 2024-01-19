@@ -1,7 +1,7 @@
 # NOTE: These are only default values for the web application.
 # It is expected that these values will be overriden using
 # environment variables in live environments.
-app:
+server:
   env: "development"
   url: ":4000"
   user: "admin"
