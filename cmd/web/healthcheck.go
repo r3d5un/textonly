@@ -19,8 +19,9 @@ type HealthCheckMessage struct {
 // @Router			/v1/healthcheck [get]
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	healthCheckMessage := HealthCheckMessage{
-		Status:  "available",
-		Version: version,
+		Status:      "available",
+		Environment: app.config.App.ENV,
+		Version:     version,
 	}
 
 	err := app.writeJSON(w, http.StatusOK, healthCheckMessage, nil)
