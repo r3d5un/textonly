@@ -1,26 +1,71 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"textonly.islandwind.me/internal/utils"
 )
 
-// hostCmd represents the host command
+type HealthCheckResponse struct {
+	Status      string `json:"status"`
+	Environment string `json:"environment"`
+	Version     string `json:"version"`
+}
+
+// getCmd represents the host command
 var hostCmd = &cobra.Command{
 	Use:   "host",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Get the status of the configured Textonly host",
+	Long: `Outputs the current status, environment and version of the configured
+Textonly host. Uses the /v1/healthcheck endpoint.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("host called")
+		host := viper.Get("host")
+		url := fmt.Sprintf("%s/v1/healthcheck", host)
+
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Add("User-Agent", "toctl (Textonly API client)")
+
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		defer res.Body.Close()
+
+		hcr := HealthCheckResponse{}
+		err = utils.ReadJSON(res.Body, &hcr)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		if !jsonOutput {
+			fmt.Printf(
+				"Status: %s, Environment: %s, Version: %s\n",
+				hcr.Status,
+				hcr.Environment,
+				hcr.Version,
+			)
+			return
+		}
+
+		js, err := json.Marshal(hcr)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		fmt.Println(string(js))
 	},
 }
 
+var jsonOutput bool
+
 func init() {
-	rootCmd.AddCommand(hostCmd)
+	hostCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output to JSON")
+	getCmd.AddCommand(hostCmd)
 }
