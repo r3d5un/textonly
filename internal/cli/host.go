@@ -63,8 +63,6 @@ Textonly host. Uses the /v1/healthcheck endpoint.`,
 	},
 }
 
-var jsonOutput bool
-
 func init() {
 	hostCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output to JSON")
 	getCmd.AddCommand(hostCmd)
