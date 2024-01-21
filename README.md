@@ -26,3 +26,4 @@ I wanted an excuse to create a CLI tool, and have therefore limited the WebUI to
 - [x] Dockerfile
 - [ ] Documentation
 - [x] Swagger
+- [ ] Implement ProtoBuf
