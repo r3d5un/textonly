@@ -9,6 +9,7 @@ import (
 )
 
 var cfgFile string
+var jsonOutput bool
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
