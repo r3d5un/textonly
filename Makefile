@@ -65,6 +65,26 @@ swagger:
 	swag init -g ./cmd/web/main.go
 
 # ==================================================================================== #
+# RUN
+# ==================================================================================== #
+
+.PHONY: run/docker-compose
+run/docker-compose:
+	make swagger
+	make audit
+	make vendor
+	@echo 'Building and starting Docker Compose'
+	docker compose up --build
+
+.PHONY: run/docker-compose/db
+run/docker-compose/db:
+	make swagger
+	make audit
+	make vendor
+	@echo 'Building and starting Docker Compose with "db" profile'
+	docker compose --profile=db up --build
+
+# ==================================================================================== #
 # BUILD
 # ==================================================================================== #
 
@@ -84,15 +104,6 @@ build/docker:
 	swag init -g ./cmd/web/main.go
 	@echo 'Building docker image with tag ${tag}'
 	docker build -t textonly:${tag} .
-
-.PHONY: build/docker-compose/db
-build/docker-compose/db:
-	make swagger
-	make audit
-	make vendor
-	@echo 'Building and starting Docker Compose with "db" profile'
-	docker compose --profile=db up --build
-
 
 # ==================================================================================== #
 # DEPLOY DIGITALOCEAN
