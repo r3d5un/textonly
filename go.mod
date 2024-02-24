@@ -5,7 +5,6 @@ go 1.22
 require (
 	github.com/google/uuid v1.5.0
 	github.com/jackc/pgx/v5 v5.4.3
-	github.com/julienschmidt/httprouter v1.3.0
 	github.com/justinas/alice v1.2.0
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/spf13/cobra v1.8.0

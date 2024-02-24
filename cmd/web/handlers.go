@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/julienschmidt/httprouter"
 	"textonly.islandwind.me/internal/data"
 	"textonly.islandwind.me/internal/validator"
 )
@@ -17,12 +16,29 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) readPost(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	params := httprouter.ParamsFromContext(r.Context())
-	id, err := strconv.Atoi(params.ByName("id"))
+
+	app.logger.InfoContext(ctx, "parsing id parameter")
+	rawValue := r.PathValue("id")
+	if rawValue == "" {
+		app.logger.ErrorContext(ctx, "parameter value empty", "id", rawValue)
+		app.badRequestResponse(w, r, "parameter value empty")
+		return
+	}
+	app.logger.InfoContext(ctx, "parsing id value", "id", rawValue)
+
+	app.logger.InfoContext(ctx, "parsing id value to integer", "id", rawValue)
+	id, err := strconv.Atoi(rawValue)
+	if err != nil {
+		app.logger.ErrorContext(ctx, "unable to parse id value", "value", rawValue)
+		app.badRequestResponse(w, r, "unable to parse id value")
+		return
+	}
 	if err != nil || id < 1 {
+		app.logger.ErrorContext(ctx, "invalid id value", "value", id)
 		app.notFound(w)
 		return
 	}
+	app.logger.ErrorContext(ctx, "id value parsed", "id", id)
 
 	app.logger.InfoContext(ctx, "querying blogpost", "id", id)
 	blogPost, err := app.models.BlogPosts.Get(ctx, id)
