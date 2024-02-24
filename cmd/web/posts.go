@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/julienschmidt/httprouter"
 	"textonly.islandwind.me/internal/data"
 	"textonly.islandwind.me/internal/validator"
 )
@@ -48,18 +47,17 @@ func (app *application) getBlogHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	app.logger.InfoContext(ctx, "parsing blog ID from path", "key", "id", "path", r.URL.Path)
-	params := httprouter.ParamsFromContext(r.Context())
-	id, err := strconv.Atoi(params.ByName("id"))
+	rawValue := r.PathValue("id")
+	if rawValue == "" {
+		app.logger.ErrorContext(ctx, "parameter value empty", "id", rawValue)
+		app.badRequestResponse(w, r, "parameter value empty")
+		return
+	}
+
+	id, err := strconv.Atoi(rawValue)
 	if err != nil {
-		app.logger.ErrorContext(
-			ctx,
-			"unable to get ID parameter from URL string",
-			"params",
-			params,
-			"error",
-			err,
-		)
-		app.serverErrorResponse(w, r, err)
+		app.logger.ErrorContext(ctx, "unable to parse id value", "value", rawValue)
+		app.badRequestResponse(w, r, "unable to parse id value")
 		return
 	}
 	if id < 0 {
@@ -231,18 +229,17 @@ func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 
 	app.logger.InfoContext(ctx, "parsing blog ID from path", "key", "id", "path", r.URL.Path)
-	params := httprouter.ParamsFromContext(r.Context())
-	id, err := strconv.Atoi(params.ByName("id"))
+	rawValue := r.PathValue("id")
+	if rawValue == "" {
+		app.logger.ErrorContext(ctx, "parameter value empty", "id", rawValue)
+		app.badRequestResponse(w, r, "parameter value empty")
+		return
+	}
+
+	id, err := strconv.Atoi(rawValue)
 	if err != nil {
-		app.logger.ErrorContext(
-			ctx,
-			"unable to get ID parameter from URL string",
-			"params",
-			params,
-			"error",
-			err,
-		)
-		app.serverErrorResponse(w, r, err)
+		app.logger.ErrorContext(ctx, "unable to parse id value", "value", rawValue)
+		app.badRequestResponse(w, r, "unable to parse id value")
 		return
 	}
 	if id < 0 {

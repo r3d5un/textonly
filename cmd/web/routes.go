@@ -1,65 +1,60 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
-	"github.com/swaggo/http-swagger"
-
+	httpSwagger "github.com/swaggo/http-swagger"
 	_ "textonly.islandwind.me/docs"
 	"textonly.islandwind.me/ui"
 )
 
 func (app *application) routes() http.Handler {
-	router := httprouter.New()
+	slog.Info("creating multiplexer")
+	mux := http.NewServeMux()
 
-	// error handler routes
-	router.NotFound = http.HandlerFunc(app.notFoundResponse)
-	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
-
+	slog.Info("creating middleware chains")
 	// for routes that require authentication
 	protected := alice.New(app.basicAuth)
 
 	// static files
 	fileServer := http.FileServer(http.FS(ui.Files))
-	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
+	mux.Handle("GET /static/{filepath...}", fileServer)
 
 	// healthcheck
-	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+	slog.Info("adding healthcheck route")
+	mux.HandleFunc("GET /v1/healthcheck", app.healthcheckHandler)
 
 	// swagger
-	router.HandlerFunc(http.MethodGet, "/swagger/:any", httpSwagger.WrapHandler)
+	slog.Info("adding swagger documentation routes")
+	mux.HandleFunc("GET /swagger/{any...}", httpSwagger.WrapHandler)
 
 	// UI
-	router.HandlerFunc(http.MethodGet, "/", app.home)
-	router.HandlerFunc(http.MethodGet, "/home", app.home)
-	router.HandlerFunc(http.MethodGet, "/post/read/:id", app.readPost)
-	router.HandlerFunc(http.MethodGet, "/post", app.posts)
-	router.HandlerFunc(http.MethodGet, "/about", app.about)
-	router.HandlerFunc(http.MethodGet, "/feed.rss", app.feed)
+	mux.HandleFunc("GET /", app.home)
+	mux.HandleFunc("GET /home", app.home)
+	mux.HandleFunc("GET /post/read/{id}", app.readPost)
+	mux.HandleFunc("GET /post", app.posts)
+	mux.HandleFunc("GET /about", app.about)
+	mux.HandleFunc("GET /feed.rss", app.feed)
 
 	// API
-	router.HandlerFunc(http.MethodGet, "/api/post", app.listBlogHandler)
-	router.HandlerFunc(http.MethodGet, "/api/post/:id", app.getBlogHandler)
-	router.Handler(http.MethodPost, "/api/post", protected.ThenFunc(app.postBlogHandler))
-	router.Handler(http.MethodDelete, "/api/post/:id", protected.ThenFunc(app.deleteBlogHandler))
-	router.Handler(http.MethodPut, "/api/post", protected.ThenFunc(app.updateBlogHandler))
+	mux.HandleFunc("GET /api/post", app.listBlogHandler)
+	mux.HandleFunc("GET /api/post/{id}", app.getBlogHandler)
+	mux.Handle("POST /api/post", protected.ThenFunc(app.postBlogHandler))
+	mux.Handle("DELETE /api/post/{id}", protected.ThenFunc(app.deleteBlogHandler))
+	mux.Handle("PUT /api/post", protected.ThenFunc(app.updateBlogHandler))
 
-	router.HandlerFunc(http.MethodGet, "/api/social", app.listSocialHandler)
-	router.HandlerFunc(http.MethodGet, "/api/social/:id", app.getSocialHandler)
-	router.Handler(http.MethodPost, "/api/social", protected.ThenFunc(app.postSocialHandler))
-	router.Handler(
-		http.MethodDelete,
-		"/api/social/:id",
-		protected.ThenFunc(app.deleteSocialHandler),
-	)
-	router.Handler(http.MethodPut, "/api/social", protected.ThenFunc(app.updateSocialHandler))
+	mux.HandleFunc("GET /api/social", app.listSocialHandler)
+	mux.HandleFunc("GET /api/social/{id}", app.getSocialHandler)
+	mux.Handle("POST /api/social", protected.ThenFunc(app.postSocialHandler))
+	mux.Handle("DELETE /api/social/{id}", protected.ThenFunc(app.deleteSocialHandler))
+	mux.Handle("PUT /api/social", protected.ThenFunc(app.updateSocialHandler))
 
-	router.HandlerFunc(http.MethodGet, "/api/user/:id", app.getUserHandler)
-	router.Handler(http.MethodPut, "/api/user", protected.ThenFunc(app.updateUserHandler))
+	mux.HandleFunc("GET /api/user/{id}", app.getUserHandler)
+	mux.Handle("PUT /api/user", protected.ThenFunc(app.updateUserHandler))
 
 	standard := alice.New(app.recoverPanic, app.rateLimit, app.logRequest, secureHeaders)
 
-	return standard.Then(router)
+	return standard.Then(mux)
 }
