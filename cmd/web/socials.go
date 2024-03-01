@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"textonly.islandwind.me/internal/data"
+	"textonly.islandwind.me/internal/utils"
 	"textonly.islandwind.me/internal/validator"
 )
 
@@ -44,23 +45,24 @@ type UpdateSocialResponse struct {
 // @Router			/api/social/{id} [get]
 func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
 
-	app.logger.InfoContext(ctx, "parsing social ID from path", "key", "id", "path", r.URL.Path)
+	logger.InfoContext(ctx, "parsing social ID from path", "key", "id", "path", r.URL.Path)
 	rawValue := r.PathValue("id")
 	if rawValue == "" {
-		app.logger.ErrorContext(ctx, "parameter value empty", "id", rawValue)
+		logger.ErrorContext(ctx, "parameter value empty", "id", rawValue)
 		app.badRequestResponse(w, r, "parameter value empty")
 		return
 	}
 
 	id, err := strconv.Atoi(rawValue)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to parse id value", "value", rawValue)
+		logger.ErrorContext(ctx, "unable to parse id value", "value", rawValue)
 		app.badRequestResponse(w, r, "unable to parse id value")
 		return
 	}
 	if err != nil {
-		app.logger.ErrorContext(
+		logger.ErrorContext(
 			ctx,
 			"unable to get ID parameter from URL string",
 			"error",
@@ -70,27 +72,27 @@ func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if id < 0 {
-		app.logger.InfoContext(ctx, "invalid ID", "id", id)
+		logger.InfoContext(ctx, "invalid ID", "id", id)
 		app.notFoundResponse(w, r)
 		return
 	}
 
-	app.logger.InfoContext(ctx, "retrieving social account data", "id", id)
+	logger.InfoContext(ctx, "retrieving social account data", "id", id)
 	s, err := app.models.Socials.Get(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.logger.InfoContext(ctx, "no records found", "id", id)
+			logger.InfoContext(ctx, "no records found", "id", id)
 			app.notFoundResponse(w, r)
 			return
 		default:
-			app.logger.ErrorContext(ctx, "an error occurred during retrieval", "error", err)
+			logger.ErrorContext(ctx, "an error occurred during retrieval", "error", err)
 			app.serverErrorResponse(w, r, err)
 			return
 		}
 	}
 
-	app.logger.InfoContext(ctx, "returning social account data", "id", s.ID)
+	logger.InfoContext(ctx, "returning social account data", "id", s.ID)
 	err = app.writeJSON(
 		w,
 		http.StatusOK,
@@ -98,7 +100,7 @@ func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request)
 		nil,
 	)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to write response", "error", err)
+		logger.ErrorContext(ctx, "unable to write response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -121,6 +123,8 @@ func (app *application) getSocialHandler(w http.ResponseWriter, r *http.Request)
 // @Router			/api/social/ [get]
 func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
+
 	var input struct {
 		data.Filters `json:"filters,omitempty"`
 	}
@@ -149,7 +153,7 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 
 	ss, metadata, err := app.models.Socials.GetAll(ctx, input.Filters)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to get social data", "error", err, "input", input)
+		logger.ErrorContext(ctx, "unable to get social data", "error", err, "input", input)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -158,7 +162,7 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 		w, http.StatusOK, SocialListResponse{Metadata: metadata, Data: ss}, nil,
 	)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "error writing response", "error", err)
+		logger.ErrorContext(ctx, "error writing response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -181,12 +185,13 @@ func (app *application) listSocialHandler(w http.ResponseWriter, r *http.Request
 // @Router			/api/social/{id} [post]
 func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
 
 	var s SocialPostRequest
 
 	err := app.readJSON(r, &s)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to parse JSON request body", "error", err)
+		logger.ErrorContext(ctx, "unable to parse JSON request body", "error", err)
 		app.badRequestResponse(w, r, "unable to parse JSON request body")
 		return
 	}
@@ -197,14 +202,14 @@ func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request
 		Link:           s.Link,
 	})
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to create social data", "error", err)
+		logger.ErrorContext(ctx, "unable to create social data", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	err = app.writeJSON(w, http.StatusCreated, queryResponse, nil)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to write response", "error", err)
+		logger.ErrorContext(ctx, "unable to write response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -226,18 +231,16 @@ func (app *application) postSocialHandler(w http.ResponseWriter, r *http.Request
 // @Router			/api/social/{id} [put]
 func (app *application) updateSocialHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
 
 	var input data.Social
 
 	err := app.readJSON(r, &input)
 	if err != nil {
-		app.logger.ErrorContext(
-			ctx,
+		logger.Error(
 			"unable to parse JSON request body",
-			"error",
-			err,
-			"request",
-			r.Body,
+			"error", err,
+			"request", r.Body,
 		)
 		app.badRequestResponse(w, r, "uanble to parse JSON request body")
 		return
@@ -278,23 +281,24 @@ func (app *application) updateSocialHandler(w http.ResponseWriter, r *http.Reque
 // @Router			/api/social/{id} [delete]
 func (app *application) deleteSocialHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
 
-	app.logger.InfoContext(ctx, "parsing social ID from path", "key", "id", "path", r.URL.Path)
+	logger.Info("parsing social ID from path")
 	rawValue := r.PathValue("id")
 	if rawValue == "" {
-		app.logger.ErrorContext(ctx, "parameter value empty", "id", rawValue)
+		logger.ErrorContext(ctx, "parameter value empty", "id", rawValue)
 		app.badRequestResponse(w, r, "parameter value empty")
 		return
 	}
 
 	id, err := strconv.Atoi(rawValue)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to parse id value", "value", rawValue)
+		logger.ErrorContext(ctx, "unable to parse id value", "value", rawValue)
 		app.badRequestResponse(w, r, "unable to parse id value")
 		return
 	}
 	if id < 0 {
-		app.logger.InfoContext(ctx, "invalid ID", "id", id)
+		logger.InfoContext(ctx, "invalid ID", "id", id)
 		app.notFound(w)
 		return
 	}

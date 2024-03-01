@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"textonly.islandwind.me/cmd/web/config"
 	"textonly.islandwind.me/internal/data"
@@ -30,9 +31,17 @@ type application struct {
 // @version		1.0
 // @description	Textonly API
 func main() {
-	ctxLogHandler := &ContextHandler{slog.NewJSONHandler(os.Stdout, nil)}
-	logger := slog.New(ctxLogHandler)
+	handler := slog.NewJSONHandler(os.Stdout, nil)
+	logger := slog.New(handler)
 	slog.SetDefault(logger)
+
+	instanceLogger := logger.With(
+		slog.Group(
+			"application_instance",
+			slog.String("version", version),
+			slog.String("instance_id", uuid.New().String()),
+		),
+	)
 
 	displayVersion := flag.Bool("version", false, "Display version and exit")
 
@@ -69,7 +78,7 @@ func main() {
 	logger.Info("templates successfully cached")
 
 	app := &application{
-		logger:        logger,
+		logger:        instanceLogger,
 		models:        data.NewModels(db, logger, &queryTimeout),
 		templateCache: templateCache,
 		config:        config,

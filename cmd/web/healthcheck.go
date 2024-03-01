@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+
+	"textonly.islandwind.me/internal/utils"
 )
 
 type HealthCheckMessage struct {
@@ -18,21 +20,21 @@ type HealthCheckMessage struct {
 // @Failure		500	{object}	ErrorMessage
 // @Router			/v1/healthcheck [get]
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
+
 	healthCheckMessage := HealthCheckMessage{
 		Status:      "available",
 		Environment: app.config.Server.ENV,
 		Version:     version,
 	}
 
+	logger.Info("writing response", "response", healthCheckMessage)
 	err := app.writeJSON(w, http.StatusOK, healthCheckMessage, nil)
 	if err != nil {
-		app.logger.ErrorContext(
-			r.Context(),
+		logger.Error(
 			"an error occurred while returning healthcheck response",
-			"request",
-			r,
-			"error",
-			err,
+			"error", err,
 		)
 		app.serverErrorResponse(w, r, err)
 		return

@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/time/rate"
+	"textonly.islandwind.me/internal/utils"
 )
 
 func secureHeaders(next http.Handler) http.Handler {
@@ -33,16 +34,20 @@ func secureHeaders(next http.Handler) http.Handler {
 
 func (app *application) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		app.logger.Info("received request",
-			"remote_address", r.RemoteAddr,
-			"protocol", r.Proto,
-			"request_method", r.Method,
-			"request_url", r.URL.String(),
+		rCtx := r.Context()
+		requestLogger := app.logger.With(
+			slog.Group(
+				"request",
+				slog.String("id", uuid.New().String()),
+				slog.String("method", r.Method),
+				slog.String("protocol", r.Proto),
+				slog.String("url", r.URL.Path),
+			),
 		)
-		rID := uuid.New()
-		ctx := AppendCtx(r.Context(), slog.String("request_id", rID.String()))
+		loggerCtx := utils.WithLogger(rCtx, requestLogger)
+		requestLogger.Info("received request")
 
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, r.WithContext(loggerCtx))
 	})
 }
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/justinas/alice"
@@ -11,10 +10,10 @@ import (
 )
 
 func (app *application) routes() http.Handler {
-	slog.Info("creating multiplexer")
+	app.logger.Info("creating multiplexer")
 	mux := http.NewServeMux()
 
-	slog.Info("creating middleware chains")
+	app.logger.Info("creating middleware chains")
 	// for routes that require authentication
 	protected := alice.New(app.basicAuth)
 
@@ -23,11 +22,11 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /static/{filepath...}", fileServer)
 
 	// healthcheck
-	slog.Info("adding healthcheck route")
+	app.logger.Info("adding healthcheck route")
 	mux.HandleFunc("GET /v1/healthcheck", app.healthcheckHandler)
 
 	// swagger
-	slog.Info("adding swagger documentation routes")
+	app.logger.Info("adding swagger documentation routes")
 	mux.HandleFunc("GET /swagger/{any...}", httpSwagger.WrapHandler)
 
 	// UI
