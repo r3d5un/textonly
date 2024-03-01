@@ -3,7 +3,6 @@ package data
 import (
 	"database/sql"
 	"errors"
-	"log/slog"
 	"time"
 )
 
@@ -17,10 +16,10 @@ type Models struct {
 	Users     UserModel
 }
 
-func NewModels(db *sql.DB, logger *slog.Logger, timeout *time.Duration) Models {
+func NewModels(db *sql.DB, timeout *time.Duration) Models {
 	return Models{
-		BlogPosts: BlogPostModel{DB: db, Logger: logger, Timeout: timeout},
-		Socials:   SocialModel{DB: db, Logger: logger, Timeout: timeout},
-		Users:     UserModel{DB: db, Logger: logger, Timeout: timeout},
+		BlogPosts: BlogPostModel{DB: db, Timeout: timeout},
+		Socials:   SocialModel{DB: db, Timeout: timeout},
+		Users:     UserModel{DB: db, Timeout: timeout},
 	}
 }

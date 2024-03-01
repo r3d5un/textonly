@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log/slog"
 	"time"
+
+	"textonly.islandwind.me/internal/utils"
 )
 
 type BlogPost struct {
@@ -20,23 +21,23 @@ type BlogPost struct {
 type BlogPostModel struct {
 	Timeout *time.Duration
 	DB      *sql.DB
-	Logger  *slog.Logger
 }
 
 func (m *BlogPostModel) Get(ctx context.Context, id int) (*BlogPost, error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	if id < 1 {
-		m.Logger.InfoContext(ctx, "invalid id", "id", id)
+		logger.InfoContext(ctx, "invalid id", "id", id)
 		return nil, ErrRecordNotFound
 	}
-	stmt := `
-        SELECT id, title, lead, post, last_update, created
-        FROM posts
-        WHERE id = $1;`
+	stmt := `SELECT id, title, lead, post, last_update, created
+FROM posts
+WHERE id = $1;`
 
 	qCtx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
-	m.Logger.InfoContext(qCtx, "querying blogpost", "query", stmt, "id", id)
+	logger.InfoContext(qCtx, "querying blogpost", "query", stmt, "id", id)
 	row := m.DB.QueryRowContext(ctx, stmt, id)
 	blogPost := &BlogPost{}
 
@@ -50,14 +51,14 @@ func (m *BlogPostModel) Get(ctx context.Context, id int) (*BlogPost, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			m.Logger.InfoContext(ctx, "no records found", "query", stmt, "id", id)
+			logger.InfoContext(ctx, "no records found", "query", stmt, "id", id)
 			return nil, ErrNoRecord
 		} else {
-			m.Logger.InfoContext(ctx, "unable to query blogpost", "query", stmt, "id", id)
+			logger.InfoContext(ctx, "unable to query blogpost", "query", stmt, "id", id)
 			return nil, err
 		}
 	}
-	m.Logger.InfoContext(ctx, "data retrieved")
+	logger.InfoContext(ctx, "data retrieved")
 
 	return blogPost, nil
 }
@@ -66,6 +67,8 @@ func (m *BlogPostModel) GetAll(
 	ctx context.Context,
 	filters Filters,
 ) ([]*BlogPost, Metadata, error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	stmt := `
         SELECT COUNT(*) OVER(), id, title, lead, post, last_update, created
         FROM posts
@@ -84,7 +87,7 @@ func (m *BlogPostModel) GetAll(
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	m.Logger.InfoContext(ctx, "querying blogposts", "query", stmt, "filters", filters)
+	logger.InfoContext(ctx, "querying blogposts", "query", stmt, "filters", filters)
 	rows, err := m.DB.QueryContext(
 		ctx,
 		stmt,
@@ -100,7 +103,7 @@ func (m *BlogPostModel) GetAll(
 		filters.offset(),
 	)
 	if err != nil {
-		m.Logger.ErrorContext(ctx, "unable to query blogposts", "query", stmt, "error", err)
+		logger.ErrorContext(ctx, "unable to query blogposts", "query", stmt, "error", err)
 		return nil, Metadata{}, err
 	}
 	defer rows.Close()
@@ -119,32 +122,34 @@ func (m *BlogPostModel) GetAll(
 			&blogPost.Created,
 		)
 		if err != nil {
-			m.Logger.ErrorContext(ctx, "unable to query blogposts", "query", stmt, "error", err)
+			logger.ErrorContext(ctx, "unable to query blogposts", "query", stmt, "error", err)
 			return nil, Metadata{}, err
 		}
 		blogPosts = append(blogPosts, blogPost)
 	}
 	if err = rows.Err(); err != nil {
-		m.Logger.ErrorContext(ctx, "unable to query blogposts", "query", stmt, "error", err)
+		logger.ErrorContext(ctx, "unable to query blogposts", "query", stmt, "error", err)
 		return nil, Metadata{}, err
 	}
 	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize, filters.OrderBy)
-	m.Logger.InfoContext(ctx, "data retrieved", "metadata", metadata)
+	logger.InfoContext(ctx, "data retrieved", "metadata", metadata)
 
 	return blogPosts, metadata, nil
 }
 
 func (m *BlogPostModel) LastN(ctx context.Context, limit int) ([]*BlogPost, error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	stmt := `
         SELECT id, title, lead, post, last_update, created
         FROM posts
         ORDER BY id DESC
         LIMIT $1;`
 
-	m.Logger.InfoContext(ctx, "querying last blogposts", "query", stmt, "limit", limit)
+	logger.InfoContext(ctx, "querying last blogposts", "query", stmt, "limit", limit)
 	rows, err := m.DB.Query(stmt, limit)
 	if err != nil {
-		m.Logger.Info("unable to query last blogposts", "query", stmt, "limit", limit)
+		logger.Info("unable to query last blogposts", "query", stmt, "limit", limit)
 		return nil, err
 	}
 	defer rows.Close()
@@ -161,7 +166,7 @@ func (m *BlogPostModel) LastN(ctx context.Context, limit int) ([]*BlogPost, erro
 			&blogPost.Created,
 		)
 		if err != nil {
-			m.Logger.InfoContext(
+			logger.InfoContext(
 				ctx,
 				"unable to query last blogposts",
 				"query",
@@ -174,15 +179,17 @@ func (m *BlogPostModel) LastN(ctx context.Context, limit int) ([]*BlogPost, erro
 		blogPosts = append(blogPosts, blogPost)
 	}
 	if err = rows.Err(); err != nil {
-		m.Logger.InfoContext(ctx, "unable to query last blogposts", "query", stmt, "limit", limit)
+		logger.InfoContext(ctx, "unable to query last blogposts", "query", stmt, "limit", limit)
 		return nil, err
 	}
-	m.Logger.InfoContext(ctx, "data retrieved")
+	logger.InfoContext(ctx, "data retrieved")
 
 	return blogPosts, nil
 }
 
 func (m *BlogPostModel) Insert(ctx context.Context, bp *BlogPost) (BlogPost, error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	query := `INSERT INTO posts (
         title, lead, post
         )
@@ -198,12 +205,12 @@ func (m *BlogPostModel) Insert(ctx context.Context, bp *BlogPost) (BlogPost, err
 	rCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	m.Logger.InfoContext(rCtx, "inserting blogpost", "query", query, "args", args)
+	logger.InfoContext(rCtx, "inserting blogpost", "query", query, "args", args)
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
 		&bp.ID, &bp.LastUpdate, &bp.Created,
 	)
 	if err != nil {
-		m.Logger.ErrorContext(
+		logger.ErrorContext(
 			ctx,
 			"unable to insert blogpost",
 			"query",
@@ -215,12 +222,14 @@ func (m *BlogPostModel) Insert(ctx context.Context, bp *BlogPost) (BlogPost, err
 		)
 		return *bp, err
 	}
-	m.Logger.InfoContext(ctx, "blogpost inserted", "id", bp.ID)
+	logger.InfoContext(ctx, "blogpost inserted", "id", bp.ID)
 
 	return *bp, nil
 }
 
 func (m *BlogPostModel) Update(ctx context.Context, bp *BlogPost) (rowsAffected int64, err error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	query := `UPDATE posts
         SET title = $2, lead = $3, post = $4, last_update = NOW(), created = $5
         WHERE id = $1
@@ -237,15 +246,15 @@ func (m *BlogPostModel) Update(ctx context.Context, bp *BlogPost) (rowsAffected 
 	rCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	m.Logger.InfoContext(ctx, "updating blogpost", "query", query, "args", args)
+	logger.InfoContext(ctx, "updating blogpost", "query", query, "args", args)
 	result, err := m.DB.ExecContext(rCtx, query, args...)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			m.Logger.InfoContext(ctx, "no records found", "query", query, "args", args)
+			logger.InfoContext(ctx, "no records found", "query", query, "args", args)
 			return 0, ErrNoRecord
 		default:
-			m.Logger.ErrorContext(
+			logger.ErrorContext(
 				ctx,
 				"unable to update blogpost",
 				"query",
@@ -261,7 +270,7 @@ func (m *BlogPostModel) Update(ctx context.Context, bp *BlogPost) (rowsAffected 
 
 	rowsAffected, err = result.RowsAffected()
 	if err != nil {
-		m.Logger.ErrorContext(
+		logger.ErrorContext(
 			ctx,
 			"unable to update blogpost",
 			"query",
@@ -274,24 +283,26 @@ func (m *BlogPostModel) Update(ctx context.Context, bp *BlogPost) (rowsAffected 
 		return 0, err
 	}
 	if rowsAffected == 0 {
-		m.Logger.InfoContext(ctx, "no records found", "query", query, "args", args)
+		logger.InfoContext(ctx, "no records found", "query", query, "args", args)
 		return 0, ErrRecordNotFound
 	}
-	m.Logger.InfoContext(ctx, "blogpost updated", "id", bp.ID)
+	logger.InfoContext(ctx, "blogpost updated", "id", bp.ID)
 
 	return rowsAffected, nil
 }
 
 func (m *BlogPostModel) Delete(ctx context.Context, id int) (rowsAffected int64, err error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	query := "DELETE FROM posts WHERE id = $1;"
 
 	rCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	m.Logger.InfoContext(rCtx, "deleting blogpost", "query", query, "id", id)
+	logger.InfoContext(rCtx, "deleting blogpost", "query", query, "id", id)
 	result, err := m.DB.ExecContext(ctx, query, id)
 	if err != nil {
-		m.Logger.ErrorContext(
+		logger.ErrorContext(
 			ctx,
 			"unable to delete blogpost",
 			"query",
@@ -306,7 +317,7 @@ func (m *BlogPostModel) Delete(ctx context.Context, id int) (rowsAffected int64,
 
 	rowsAffected, err = result.RowsAffected()
 	if err != nil {
-		m.Logger.ErrorContext(
+		logger.ErrorContext(
 			ctx,
 			"unable to delete blogpost",
 			"query",
@@ -319,10 +330,10 @@ func (m *BlogPostModel) Delete(ctx context.Context, id int) (rowsAffected int64,
 		return 0, err
 	}
 	if rowsAffected == 0 {
-		m.Logger.InfoContext(ctx, "no records found", "query", query, "id", id)
+		logger.InfoContext(ctx, "no records found", "query", query, "id", id)
 		return 0, ErrRecordNotFound
 	}
-	m.Logger.InfoContext(ctx, "blogpost deleted", "id", id)
+	logger.InfoContext(ctx, "blogpost deleted", "id", id)
 
 	return rowsAffected, nil
 }

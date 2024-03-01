@@ -79,7 +79,7 @@ func main() {
 
 	app := &application{
 		logger:        instanceLogger,
-		models:        data.NewModels(db, logger, &queryTimeout),
+		models:        data.NewModels(db, &queryTimeout),
 		templateCache: templateCache,
 		config:        config,
 	}
