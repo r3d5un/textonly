@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -15,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"textonly.islandwind.me/internal/utils"
 	"textonly.islandwind.me/internal/validator"
 )
 
@@ -148,21 +148,22 @@ func (app *application) readJSON(r *http.Request, data interface{}) error {
 
 func (app *application) redirectToLatestPost(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
 
 	posts, err := app.models.BlogPosts.LastN(ctx, 1)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "error occurred while redirecting", "error", err)
+		logger.ErrorContext(ctx, "error occurred while redirecting", "error", err)
 		return
 	}
 
 	if len(posts) != 1 {
-		app.logger.ErrorContext(ctx, "unexected number of posts returned", "posts", posts)
+		logger.ErrorContext(ctx, "unexected number of posts returned", "posts", posts)
 		app.notFound(w)
 	}
 
 	urlString := fmt.Sprintf("/post/read/%d", posts[0].ID)
 
-	app.logger.InfoContext(ctx, "redirecting to last post", "url", urlString)
+	logger.InfoContext(ctx, "redirecting to last post", "url", urlString)
 	http.Redirect(w, r, urlString, http.StatusMovedPermanently)
 }
 
@@ -242,6 +243,10 @@ func (app *application) failedValidationResponse(
 	r *http.Request,
 	errors map[string]string,
 ) {
+	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
+
+	logger.InfoContext(ctx, "returning failed validation response", "request", r)
 	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
 }
 
@@ -270,43 +275,4 @@ func (app *application) readQueryCommaSeperatedString(
 	}
 
 	return values
-}
-
-type ctxKey string
-
-const (
-	slogFields ctxKey = "slog_fields"
-)
-
-type ContextHandler struct {
-	slog.Handler
-}
-
-// Handle adds contextual attributes to the Record before calling the underlying
-// handler
-func (h ContextHandler) Handle(ctx context.Context, r slog.Record) error {
-	if attrs, ok := ctx.Value(slogFields).([]slog.Attr); ok {
-		for _, v := range attrs {
-			r.AddAttrs(v)
-		}
-	}
-
-	return h.Handler.Handle(ctx, r)
-}
-
-// AppendCtx adds an slog attribute to the provided context so that it will be
-// included in any Record created with such context
-func AppendCtx(parent context.Context, attr slog.Attr) context.Context {
-	if parent == nil {
-		parent = context.Background()
-	}
-
-	if v, ok := parent.Value(slogFields).([]slog.Attr); ok {
-		v = append(v, attr)
-		return context.WithValue(parent, slogFields, v)
-	}
-
-	v := []slog.Attr{}
-	v = append(v, attr)
-	return context.WithValue(parent, slogFields, v)
 }

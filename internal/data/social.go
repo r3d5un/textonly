@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log/slog"
 	"time"
+
+	"textonly.islandwind.me/internal/utils"
 )
 
 type Social struct {
@@ -18,12 +19,13 @@ type Social struct {
 type SocialModel struct {
 	Timeout *time.Duration
 	DB      *sql.DB
-	Logger  *slog.Logger
 }
 
 func (m *SocialModel) Get(ctx context.Context, id int) (*Social, error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	if id < 1 {
-		m.Logger.InfoContext(ctx, "invalid id", "id", id)
+		logger.InfoContext(ctx, "invalid id", "id", id)
 		return nil, ErrRecordNotFound
 	}
 
@@ -34,7 +36,7 @@ func (m *SocialModel) Get(ctx context.Context, id int) (*Social, error) {
 	rCtx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
-	m.Logger.InfoContext(ctx, "querying social data", "query", stmt, "id", id)
+	logger.InfoContext(ctx, "querying social data", "query", stmt, "id", id)
 	row := m.DB.QueryRowContext(rCtx, stmt, id)
 	s := &Social{}
 
@@ -46,19 +48,21 @@ func (m *SocialModel) Get(ctx context.Context, id int) (*Social, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			m.Logger.InfoContext(ctx, "no records found", "query", stmt, "id", id)
+			logger.InfoContext(ctx, "no records found", "query", stmt, "id", id)
 			return nil, ErrRecordNotFound
 		} else {
-			m.Logger.InfoContext(ctx, "unable to query social data", "query", stmt, "id", id)
+			logger.InfoContext(ctx, "unable to query social data", "query", stmt, "id", id)
 			return nil, err
 		}
 	}
-	m.Logger.InfoContext(ctx, "data retrieved")
+	logger.InfoContext(ctx, "data retrieved")
 
 	return s, nil
 }
 
 func (m *SocialModel) GetByUserID(ctx context.Context, id int) ([]*Social, error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	stmt := `
         SELECT id, user_id, social_platform, link
         FROM socials
@@ -67,10 +71,10 @@ func (m *SocialModel) GetByUserID(ctx context.Context, id int) ([]*Social, error
 	rCtx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
-	m.Logger.InfoContext(ctx, "querying socials", "query", stmt, "id", id)
+	logger.InfoContext(ctx, "querying socials", "query", stmt, "id", id)
 	rows, err := m.DB.QueryContext(rCtx, stmt, id)
 	if err != nil {
-		m.Logger.ErrorContext(ctx, "unable to query socials", "query", stmt, "id", id, "error", err)
+		logger.ErrorContext(ctx, "unable to query socials", "query", stmt, "id", id, "error", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -85,16 +89,16 @@ func (m *SocialModel) GetByUserID(ctx context.Context, id int) ([]*Social, error
 			&social.Link,
 		)
 		if err != nil {
-			m.Logger.InfoContext(ctx, "no records found", "query", stmt, "id", id)
+			logger.InfoContext(ctx, "no records found", "query", stmt, "id", id)
 			return nil, err
 		}
 		socials = append(socials, social)
 	}
 	if err = rows.Err(); err != nil {
-		m.Logger.InfoContext(ctx, "unable to query social data", "query", stmt, "id", id)
+		logger.InfoContext(ctx, "unable to query social data", "query", stmt, "id", id)
 		return nil, err
 	}
-	m.Logger.InfoContext(ctx, "data retrieved")
+	logger.InfoContext(ctx, "data retrieved")
 
 	return socials, nil
 }
@@ -103,6 +107,8 @@ func (m *SocialModel) GetAll(
 	ctx context.Context,
 	filters Filters,
 ) ([]*Social, Metadata, error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	stmt := `SELECT COUNT(*) OVER(), id, user_id, social_platform, link
     FROM socials
     WHERE
@@ -115,7 +121,7 @@ func (m *SocialModel) GetAll(
 	rCtx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
-	m.Logger.InfoContext(rCtx, "querying social data", "query", stmt, "filters", filters)
+	logger.InfoContext(rCtx, "querying social data", "query", stmt, "filters", filters)
 	rows, err := m.DB.QueryContext(
 		ctx,
 		stmt,
@@ -126,7 +132,7 @@ func (m *SocialModel) GetAll(
 		filters.offset(),
 	)
 	if err != nil {
-		m.Logger.ErrorContext(ctx, "unable to query blogposts", "query", stmt, "error", err)
+		logger.ErrorContext(ctx, "unable to query blogposts", "query", stmt, "error", err)
 		return nil, Metadata{}, err
 	}
 	defer rows.Close()
@@ -144,24 +150,26 @@ func (m *SocialModel) GetAll(
 			&social.Link,
 		)
 		if err != nil {
-			m.Logger.ErrorContext(ctx, "unable to query socials", "query", stmt, "error", err)
+			logger.ErrorContext(ctx, "unable to query socials", "query", stmt, "error", err)
 			return nil, Metadata{}, err
 		}
 		socials = append(socials, social)
 	}
 
 	if err = rows.Err(); err != nil {
-		m.Logger.InfoContext(ctx, "unable to query social data", "query", stmt, "filters", filters)
+		logger.InfoContext(ctx, "unable to query social data", "query", stmt, "filters", filters)
 		return nil, Metadata{}, err
 	}
 
 	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize, filters.OrderBy)
-	m.Logger.InfoContext(ctx, "data retrieved", "metadata", metadata)
+	logger.InfoContext(ctx, "data retrieved", "metadata", metadata)
 
 	return socials, metadata, nil
 }
 
 func (m *SocialModel) Insert(ctx context.Context, s *Social) (Social, error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	query := `INSERT INTO socials (
         user_id, social_platform, link
     )
@@ -173,19 +181,21 @@ func (m *SocialModel) Insert(ctx context.Context, s *Social) (Social, error) {
 	rCtx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
-	m.Logger.InfoContext(rCtx, "inserting social data", "query", query, "args", args)
+	logger.InfoContext(rCtx, "inserting social data", "query", query, "args", args)
 	err := m.DB.QueryRowContext(rCtx, query, args...).Scan(
 		&s.UserID, &s.SocialPlatform, &s.Link,
 	)
 	if err != nil {
 		return *s, err
 	}
-	m.Logger.InfoContext(ctx, "blogpost inserted", "social_data", *s)
+	logger.InfoContext(ctx, "blogpost inserted", "social_data", *s)
 
 	return *s, err
 }
 
 func (m *SocialModel) Update(ctx context.Context, s *Social) (rowsAffected int64, err error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	query := `UPDATE socials
     SET user_id = $2, social_platform = $3, link = $4
     WHERE id = $1;`
@@ -200,56 +210,58 @@ func (m *SocialModel) Update(ctx context.Context, s *Social) (rowsAffected int64
 	rCtx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
-	m.Logger.InfoContext(rCtx, "updating social data", "query", query, "args", args)
+	logger.InfoContext(rCtx, "updating social data", "query", query, "args", args)
 	result, err := m.DB.ExecContext(rCtx, query, args...)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			m.Logger.InfoContext(ctx, "no records found", "query", query, "args", args)
+			logger.InfoContext(ctx, "no records found", "query", query, "args", args)
 			return 0, ErrRecordNotFound
 		default:
-			m.Logger.InfoContext(ctx, "unable to query social data", "query", query, "args", args)
+			logger.InfoContext(ctx, "unable to query social data", "query", query, "args", args)
 			return 0, err
 		}
 	}
 
 	rowsAffected, err = result.RowsAffected()
 	if err != nil {
-		m.Logger.InfoContext(ctx, "unable to query social data", "query", query, "args", args)
+		logger.InfoContext(ctx, "unable to query social data", "query", query, "args", args)
 		return 0, err
 	}
 	if rowsAffected == 0 {
-		m.Logger.InfoContext(ctx, "no records found", "query", query, "args", args)
+		logger.InfoContext(ctx, "no records found", "query", query, "args", args)
 		return 0, ErrRecordNotFound
 	}
-	m.Logger.InfoContext(ctx, "social data updated", "query", query, "args", args)
+	logger.InfoContext(ctx, "social data updated", "query", query, "args", args)
 
 	return rowsAffected, nil
 }
 
 func (m *SocialModel) Delete(ctx context.Context, id int) (rowsAffected int64, err error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	query := "DELETE FROM socials WHERE id = $1;"
 
 	rCtx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
-	m.Logger.InfoContext(rCtx, "deleting social data", "query", query, "id", id)
+	logger.InfoContext(rCtx, "deleting social data", "query", query, "id", id)
 	result, err := m.DB.ExecContext(rCtx, query, id)
 	if err != nil {
-		m.Logger.ErrorContext(ctx, "unable to delete social data", "id", id, "error", err)
+		logger.ErrorContext(ctx, "unable to delete social data", "id", id, "error", err)
 		return 0, err
 	}
 
 	rowsAffected, err = result.RowsAffected()
 	if err != nil {
-		m.Logger.ErrorContext(ctx, "unable to delete social data", "id", id, "error", err)
+		logger.ErrorContext(ctx, "unable to delete social data", "id", id, "error", err)
 		return 0, err
 	}
 	if rowsAffected == 0 {
-		m.Logger.InfoContext(ctx, "no records found", "id", id)
+		logger.InfoContext(ctx, "no records found", "id", id)
 		return 0, ErrRecordNotFound
 	}
-	m.Logger.InfoContext(ctx, "social data deleted", "id", id)
+	logger.InfoContext(ctx, "social data deleted", "id", id)
 
 	return rowsAffected, nil
 }

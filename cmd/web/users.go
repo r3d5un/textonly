@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"textonly.islandwind.me/internal/data"
+	"textonly.islandwind.me/internal/utils"
 )
 
 type UserPostResponse struct {
@@ -32,43 +33,44 @@ type UpdateUserResponse struct {
 // @Router			/api/user/{id} [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
 
-	app.logger.InfoContext(ctx, "parsing user ID from path", "key", "id", "path", r.URL.Path)
+	logger.InfoContext(ctx, "parsing user ID from path", "key", "id", "path", r.URL.Path)
 	rawValue := r.PathValue("id")
 	if rawValue == "" {
-		app.logger.ErrorContext(ctx, "parameter value empty", "id", rawValue)
+		logger.ErrorContext(ctx, "parameter value empty", "id", rawValue)
 		app.badRequestResponse(w, r, "parameter value empty")
 		return
 	}
 
 	id, err := strconv.Atoi(rawValue)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to parse id value", "value", rawValue)
+		logger.ErrorContext(ctx, "unable to parse id value", "value", rawValue)
 		app.badRequestResponse(w, r, "unable to parse id value")
 		return
 	}
 	if id < 0 {
-		app.logger.InfoContext(ctx, "invalid ID", "id", id)
+		logger.InfoContext(ctx, "invalid ID", "id", id)
 		app.notFoundResponse(w, r)
 		return
 	}
 
-	app.logger.InfoContext(ctx, "retrieving user", "id", id)
+	logger.InfoContext(ctx, "retrieving user", "id", id)
 	user, err := app.models.Users.Get(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.logger.InfoContext(ctx, "user not found", "id", id)
+			logger.InfoContext(ctx, "user not found", "id", id)
 			app.notFoundResponse(w, r)
 			return
 		default:
-			app.logger.ErrorContext(ctx, "an error occurred during retrieval", "error", err)
+			logger.ErrorContext(ctx, "an error occurred during retrieval", "error", err)
 			app.serverErrorResponse(w, r, err)
 			return
 		}
 	}
 
-	app.logger.InfoContext(ctx, "returning user", "id", user.ID, "name", user.Name)
+	logger.InfoContext(ctx, "returning user", "id", user.ID, "name", user.Name)
 	err = app.writeJSON(
 		w,
 		http.StatusOK,
@@ -76,7 +78,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 		nil,
 	)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to write response", "error", err)
+		logger.ErrorContext(ctx, "unable to write response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -98,19 +100,20 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 // @Router			/api/user/{id} [put]
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	logger := utils.LoggerFromContext(ctx)
 
 	var input data.User
 	err := app.readJSON(r, &input)
 	if err != nil {
 		msg := "unable to parse JSON request body"
-		app.logger.ErrorContext(ctx, msg, "error", err, "request", r.Body)
+		logger.ErrorContext(ctx, msg, "error", err, "request", r.Body)
 		app.badRequestResponse(w, r, msg)
 		return
 	}
 
 	rowsAffected, err := app.models.Users.Update(ctx, &input)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to update user", "error", err)
+		logger.ErrorContext(ctx, "unable to update user", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -122,7 +125,7 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		nil,
 	)
 	if err != nil {
-		app.logger.ErrorContext(ctx, "unable to write response", "error", err)
+		logger.ErrorContext(ctx, "unable to write response", "error", err)
 		app.serverErrorResponse(w, r, err)
 		return
 	}

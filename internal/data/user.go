@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log/slog"
 	"time"
+
+	"textonly.islandwind.me/internal/utils"
 )
 
 type User struct {
@@ -18,12 +19,13 @@ type User struct {
 type UserModel struct {
 	Timeout *time.Duration
 	DB      *sql.DB
-	Logger  *slog.Logger
 }
 
 func (m *UserModel) Get(ctx context.Context, id int) (*User, error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	if id < 1 {
-		m.Logger.InfoContext(ctx, "invalid id", "id", id)
+		logger.InfoContext(ctx, "invalid id", "id", id)
 		return nil, ErrRecordNotFound
 	}
 
@@ -36,26 +38,28 @@ func (m *UserModel) Get(ctx context.Context, id int) (*User, error) {
 	rCtx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
-	m.Logger.Info("querying database for user", "query", stmt, "id", id)
+	logger.Info("querying database for user", "query", stmt, "id", id)
 	row := m.DB.QueryRowContext(rCtx, stmt, id)
 	user := &User{}
 
 	err := row.Scan(&user.ID, &user.Name, &user.Summary, &user.Content)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			m.Logger.InfoContext(ctx, "no records found", "error", err)
+			logger.InfoContext(ctx, "no records found", "error", err)
 			return nil, ErrNoRecord
 		} else {
-			m.Logger.ErrorContext(ctx, "unable to query user", "error", err)
+			logger.ErrorContext(ctx, "unable to query user", "error", err)
 			return nil, err
 		}
 	}
-	m.Logger.InfoContext(ctx, "data retrieved")
+	logger.InfoContext(ctx, "data retrieved")
 
 	return user, nil
 }
 
 func (m *UserModel) Update(ctx context.Context, u *User) (rowsAffected int64, err error) {
+	logger := utils.LoggerFromContext(ctx)
+
 	query := `UPDATE users
     SET name = $2, summary = $3, content = $4
     WHERE user_id = $1;`
@@ -70,29 +74,29 @@ func (m *UserModel) Update(ctx context.Context, u *User) (rowsAffected int64, er
 	rCtx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
-	m.Logger.InfoContext(ctx, "updating user", "query", query, "args", args)
+	logger.InfoContext(ctx, "updating user", "query", query, "args", args)
 	result, err := m.DB.ExecContext(rCtx, query, args...)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			m.Logger.InfoContext(ctx, "no records found", "error", err)
+			logger.InfoContext(ctx, "no records found", "error", err)
 			return 0, ErrNoRecord
 		default:
-			m.Logger.ErrorContext(ctx, "unable to update user", "error", err)
+			logger.ErrorContext(ctx, "unable to update user", "error", err)
 			return 0, err
 		}
 	}
 
 	rowsAffected, err = result.RowsAffected()
 	if err != nil {
-		m.Logger.ErrorContext(ctx, "unable to update user", "error", err)
+		logger.ErrorContext(ctx, "unable to update user", "error", err)
 		return 0, err
 	}
 	if rowsAffected == 0 {
-		m.Logger.InfoContext(ctx, "no records found", "error", err)
+		logger.InfoContext(ctx, "no records found", "error", err)
 		return 0, ErrRecordNotFound
 	}
-	m.Logger.InfoContext(ctx, "user updated", "rows_affected", rowsAffected)
+	logger.InfoContext(ctx, "user updated", "rows_affected", rowsAffected)
 
 	return rowsAffected, nil
 }
